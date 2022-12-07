@@ -27,6 +27,7 @@
 //!     .client_secret(client_secret)
 //!     .refresh_token(refresh_token)
 //!     .access_token(None) // optional
+//!     .oauth_domain(None) // optional
 //!     .api_domain(None) // optional
 //!     .sandbox(false) // optional
 //!     .timeout(30u64) // optional

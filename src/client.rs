@@ -33,6 +33,7 @@ const DEFAULT_TIMEOUT: u64 = 30;
 ///     .client_secret(client_secret)
 ///     .refresh_token(refresh_token)
 ///     .access_token(None) // optional
+///     .oauth_domain(None) // optional
 ///     .api_domain(None) // optional
 ///     .sandbox(false) // optional
 ///     .timeout(30u64) // optional
@@ -51,6 +52,8 @@ pub struct Client {
     refresh_token: String,
     #[builder(default)]
     access_token: Option<String>,
+    #[builder(default = Some(String::from("https://accounts.zoho.com")))]
+    oauth_domain: Option<String>,
     #[builder(default = Some(String::from("https://www.zohoapis.com")))]
     api_domain: Option<String>,
     #[builder(default)]
@@ -124,12 +127,15 @@ impl Client {
     /// Get the API base path, which changes depending on the current environment.
     ///
     /// This is primarily used to allow for HTTP test mocking of API calls.
-    fn get_api_base_path() -> String {
+    fn get_oauth_domain(&self) -> String {
         #[cfg(test)]
         return mockito::server_url();
 
         #[cfg(not(test))]
-        return String::from("https://accounts.zoho.com");
+        match &self.oauth_domain {
+            Some(oauth_domain) => oauth_domain.clone(),
+            None => String::from("https://accounts.zoho.com"),
+        }
     }
 
     /// Get a new access token from Zoho. Guarantees an access token when it returns
@@ -141,7 +147,7 @@ impl Client {
     pub fn get_new_token(&mut self) -> Result<TokenRecord, ClientError> {
         let url = format!(
             "{}/oauth/v2/token?grant_type=refresh_token&client_id={}&client_secret={}&refresh_token={}",
-            Client::get_api_base_path(),
+            self.get_oauth_domain(),
             self.client_id,
             self.client_secret,
             self.refresh_token
@@ -567,13 +573,18 @@ mod tests {
     }
 
     /// Get a `Client` with an access token.
-    fn get_client(access_token: Option<String>, api_domain: Option<String>) -> Client {
+    fn get_client(
+        access_token: Option<String>,
+        oauth_domain: Option<String>,
+        api_domain: Option<String>,
+    ) -> Client {
         let id = "id";
         let secret = "secret";
         let refresh_token = "refresh_token";
 
         Client::builder()
             .access_token(access_token)
+            .oauth_domain(oauth_domain)
             .api_domain(api_domain)
             .client_id(id)
             .client_secret(secret)
@@ -601,7 +612,7 @@ mod tests {
     #[test]
     /// Tests that using no preset access token works.
     fn no_access_token() {
-        let client = get_client(None, Some(String::from("api_domain")));
+        let client = get_client(None, None, Some(String::from("api_domain")));
 
         assert_eq!(client.access_token(), None);
     }
@@ -609,7 +620,7 @@ mod tests {
     #[test]
     /// Tests that using no preset API domain works.
     fn no_domain() {
-        let client = get_client(Some(String::from("access_token")), None);
+        let client = get_client(Some(String::from("access_token")), None, None);
 
         assert_eq!(client.api_domain(), None);
     }
@@ -618,7 +629,7 @@ mod tests {
     /// Tests that using a preset access token works.
     fn preset_access_token() {
         let access_token = String::from("access_token");
-        let client = get_client(Some(access_token.clone()), None);
+        let client = get_client(Some(access_token.clone()), None, None);
 
         assert_eq!(client.access_token(), Some(access_token));
     }
@@ -627,7 +638,7 @@ mod tests {
     /// Tests that using a preset API domain works.
     fn preset_api_domain() {
         let domain = String::from("api_domain");
-        let client = get_client(None, Some(domain.clone()));
+        let client = get_client(None, None, Some(domain.clone()));
 
         assert_eq!(client.api_domain(), Some(domain));
     }
@@ -635,7 +646,7 @@ mod tests {
     #[test]
     /// Tests that the `valid_abbreviated_token()` method works without an access token.
     fn empty_abbreviated_token() {
-        let client = get_client(None, None);
+        let client = get_client(None, None, None);
 
         assert_eq!(client.abbreviated_access_token(), None);
     }
@@ -644,7 +655,7 @@ mod tests {
     /// Tests that the `valid_abbreviated_token()` method works with an access token.
     fn valid_abbreviated_token() {
         let access_token = String::from("12345678901234567890");
-        let client = get_client(Some(access_token), None);
+        let client = get_client(Some(access_token), None, None);
 
         assert_ne!(client.access_token().unwrap().len(), 15);
         assert_eq!(client.abbreviated_access_token().unwrap().len(), 15);
@@ -653,7 +664,7 @@ mod tests {
     #[test]
     fn api_domain() {
         let api_domain = "https://test.com";
-        let client = get_client(None, Some(String::from(api_domain)));
+        let client = get_client(None, None, Some(String::from(api_domain)));
 
         assert_eq!(api_domain, client.api_domain().unwrap());
     }
@@ -685,7 +696,7 @@ mod tests {
         let api_domain = "https://www.zohoapis.com";
         let body = format!("{{\"access_token\":\"{}\",\"expires_in_sec\":3600,\"api_domain\":\"{}\",\"token_type\":\"Bearer\",\"expires_in\":3600000}}", access_token, api_domain);
         let mocker = get_mocker("POST", Matcher::Any, Some(&body));
-        let mut client = get_client(None, None);
+        let mut client = get_client(None, None, None);
 
         match client.get_new_token() {
             Ok(e) => println!("Good: {:#?}", e),
@@ -706,7 +717,7 @@ mod tests {
             access_token, api_domain
         );
         let mocker = get_mocker("POST", Matcher::Any, Some(&body));
-        let mut client = get_client(None, None);
+        let mut client = get_client(None, None, None);
 
         client.get_new_token().unwrap();
 
@@ -721,7 +732,7 @@ mod tests {
         let error_message = "invalid_token";
         let body = format!(r#"{{"error":"{}"}}"#, error_message);
         let mocker = get_mocker("POST", Matcher::Any, Some(&body));
-        let mut client = get_client(None, None);
+        let mut client = get_client(None, None, None);
 
         match client.get_new_token() {
             Ok(_) => panic!("Error was not thrown"),
@@ -744,7 +755,7 @@ mod tests {
             access_token, api_domain
         );
         let mocker = get_mocker("POST", Matcher::Any, Some(&body));
-        let mut client = get_client(None, None);
+        let mut client = get_client(None, None, None);
 
         let token = client.get_new_token().unwrap();
 
@@ -763,7 +774,7 @@ mod tests {
             access_token, api_domain
         );
         let mocker = get_mocker("POST", Matcher::Any, Some(&body));
-        let mut client = get_client(None, None);
+        let mut client = get_client(None, None, None);
 
         let token = client.get_new_token().unwrap();
 
@@ -782,7 +793,7 @@ mod tests {
             record_id
         );
         let mocker = get_mocker("GET", Matcher::Any, Some(&body));
-        let mut client = get_client(Some(String::from(access_token)), Some(api_domain));
+        let mut client = get_client(Some(String::from(access_token)), None, Some(api_domain));
 
         let response = client.get::<ResponseRecord>("Accounts", record_id).unwrap();
 
@@ -801,7 +812,7 @@ mod tests {
             error_code
         );
         let mocker = get_mocker("GET", Matcher::Any, Some(&body));
-        let mut client = get_client(Some(String::from(access_token)), Some(api_domain));
+        let mut client = get_client(Some(String::from(access_token)), None, Some(api_domain));
 
         match client.get::<ResponseRecord>("INVALID_MODULE", "00000") {
             Ok(_) => panic!("Response did not return an error"),
@@ -822,7 +833,7 @@ mod tests {
         let error_code = "invalid_client";
         let body = error_code.to_string();
         let mocker = get_mocker("GET", Matcher::Any, Some(&body));
-        let mut client = get_client(Some(String::from(access_token)), Some(api_domain));
+        let mut client = get_client(Some(String::from(access_token)), None, Some(api_domain));
 
         match client.get::<ResponseRecord>("INVALID_MODULE", "00000") {
             Ok(_) => panic!("Response did not return an error"),
@@ -866,7 +877,7 @@ mod tests {
             record_id
         );
         let mocker = get_mocker("POST", Matcher::Any, Some(&body));
-        let mut client = get_client(Some(String::from(access_token)), Some(api_domain));
+        let mut client = get_client(Some(String::from(access_token)), None, Some(api_domain));
 
         let mut record: HashMap<&str, &str> = HashMap::new();
         record.insert("name", "New Record Name");
@@ -901,7 +912,7 @@ mod tests {
             error_code
         );
         let mocker = get_mocker("POST", Matcher::Any, Some(&body));
-        let mut client = get_client(Some(String::from(access_token)), Some(api_domain));
+        let mut client = get_client(Some(String::from(access_token)), None, Some(api_domain));
 
         let mut record: HashMap<&str, &str> = HashMap::new();
         record.insert("name", "New Record Name");
@@ -925,7 +936,7 @@ mod tests {
         let error_code = "invalid_client";
         let body = error_code.to_string();
         let mocker = get_mocker("POST", Matcher::Any, Some(&body));
-        let mut client = get_client(Some(String::from(access_token)), Some(api_domain));
+        let mut client = get_client(Some(String::from(access_token)), None, Some(api_domain));
 
         let mut record: HashMap<&str, &str> = HashMap::new();
         record.insert("name", "New Record Name");
@@ -972,7 +983,7 @@ mod tests {
             record_id
         );
         let mocker = get_mocker("PUT", Matcher::Any, Some(&body));
-        let mut client = get_client(Some(String::from(access_token)), Some(api_domain));
+        let mut client = get_client(Some(String::from(access_token)), None, Some(api_domain));
 
         let mut record: HashMap<&str, &str> = HashMap::new();
         record.insert("name", "New Record Name");
@@ -1007,7 +1018,7 @@ mod tests {
             error_code
         );
         let mocker = get_mocker("PUT", Matcher::Any, Some(&body));
-        let mut client = get_client(Some(String::from(access_token)), Some(api_domain));
+        let mut client = get_client(Some(String::from(access_token)), None, Some(api_domain));
 
         let mut record: HashMap<&str, &str> = HashMap::new();
         record.insert("name", "New Record Name");
@@ -1031,7 +1042,7 @@ mod tests {
         let error_code = "invalid_client";
         let body = error_code.to_string();
         let mocker = get_mocker("PUT", Matcher::Any, Some(&body));
-        let mut client = get_client(Some(String::from(access_token)), Some(api_domain));
+        let mut client = get_client(Some(String::from(access_token)), None, Some(api_domain));
 
         let mut record: HashMap<&str, &str> = HashMap::new();
         record.insert("name", "New Record Name");
@@ -1079,6 +1090,7 @@ mod tests {
                     client_secret: client_secret.into(),
                     refresh_token: refresh_token.into(),
                     access_token: None,
+                    oauth_domain: Some(String::from("accounts.zoho.com")),
                     api_domain: Some(String::from("https://www.zohoapis.com")),
                     sandbox: false,
                     timeout: DEFAULT_TIMEOUT,
