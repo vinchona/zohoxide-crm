@@ -1,6 +1,6 @@
 # zohoxide-crm
 
-Library to help interact with v2 of the Zoho CRM API.
+Library (based on https://github.com/rideron89/zoho-crm) to help interact with v2 of the Zoho CRM API.
 
 ## Description & Examples
 
