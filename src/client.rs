@@ -4,6 +4,7 @@ use crate::token_record::TokenRecord;
 
 use std::collections::HashMap;
 use std::time::Duration;
+use typed_builder::TypedBuilder;
 
 /// Default network timeout for API requests.
 const DEFAULT_TIMEOUT: u64 = 30;
@@ -38,13 +39,20 @@ const DEFAULT_TIMEOUT: u64 = 30;
 ///
 /// API methods will automatically fetch a new token if one has not been set. This token is then
 /// saved internally to be used on all future requests.
+#[derive(TypedBuilder)]
+#[builder(doc)]
+#[cfg_attr(test, derive(PartialEq, Eq))]
 pub struct Client {
-    access_token: Option<String>,
-    api_domain: Option<String>,
     client_id: String,
     client_secret: String,
     refresh_token: String,
+    #[builder(default)]
+    access_token: Option<String>,
+    #[builder(default)]
+    api_domain: Option<String>,
+    #[builder(default)]
     sandbox: bool,
+    #[builder(default = DEFAULT_TIMEOUT)]
     timeout: u64,
 }
 
@@ -1047,5 +1055,28 @@ mod tests {
                 panic!("Params did not convert properly");
             }
         }
+    }
+
+    #[test]
+    fn test_builder_default_value() {
+        let client_id = String::from("client id");
+        let client_secret = String::from("client secret");
+        let refresh_token = String::from("refresh token");
+        assert!(
+            Client::builder()
+                .client_id(client_id.clone())
+                .client_secret(client_secret.clone())
+                .refresh_token(refresh_token.clone())
+                .build()
+                == Client {
+                    client_id: client_id,
+                    client_secret: client_secret,
+                    refresh_token: refresh_token,
+                    access_token: None,
+                    api_domain: None,
+                    sandbox: false,
+                    timeout: DEFAULT_TIMEOUT,
+                }
+        );
     }
 }
