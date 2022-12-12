@@ -15,23 +15,12 @@ pub enum ClientError {
     ApiError(ApiErrorResponse),
 }
 
-impl ClientError {
-    /// Return the underlying error message as as string.
-    pub fn to_string(&self) -> String {
-        match self {
-            ClientError::General(error) => error.clone(),
-            ClientError::UnexpectedResponseType(error) => error.clone(),
-            ClientError::ApiError(error) => error.to_string(),
-        }
-    }
-}
-
 impl fmt::Display for ClientError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             ClientError::General(error) => write!(f, "{}", error),
             ClientError::UnexpectedResponseType(error) => write!(f, "{}", error),
-            ClientError::ApiError(error) => write!(f, "{}", error.to_string()),
+            ClientError::ApiError(error) => write!(f, "{}", error),
         }
     }
 }

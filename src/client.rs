@@ -1,12 +1,9 @@
 use crate::client_error::ClientError;
 use crate::response;
 use crate::token_record::TokenRecord;
-use reqwest;
+
 use std::collections::HashMap;
 use std::time::Duration;
-
-#[cfg(test)]
-use mockito;
 
 /// Default network timeout for API requests.
 const DEFAULT_TIMEOUT: u64 = 30;
@@ -250,7 +247,7 @@ impl Client {
         match serde_json::from_str::<response::ApiGetResponse<T>>(&raw_response) {
             Ok(data) => Ok(data),
             Err(_) => {
-                if raw_response.len() > 0 {
+                if !raw_response.is_empty() {
                     Err(ClientError::UnexpectedResponseType(raw_response))
                 } else {
                     Err(ClientError::General(String::from("Empty response")))
@@ -328,7 +325,7 @@ impl Client {
 
         let mut url = format!("{}/crm/v2/{}", api_domain, module);
 
-        if params.is_none() == false {
+        if params.is_some() {
             url = url + &format!("?{}", params.unwrap());
         }
 
@@ -345,7 +342,7 @@ impl Client {
         match serde_json::from_str::<response::ApiGetManyResponse<T>>(&raw_response) {
             Ok(data) => Ok(data),
             Err(_) => {
-                if raw_response.len() > 0 {
+                if !raw_response.is_empty() {
                     Err(ClientError::UnexpectedResponseType(raw_response))
                 } else {
                     Err(ClientError::General(String::from("Empty response")))
@@ -425,7 +422,7 @@ impl Client {
         match serde_json::from_str::<response::ApiSuccessResponse>(&raw_response) {
             Ok(response) => Ok(response),
             Err(_) => {
-                if raw_response.len() > 0 {
+                if !raw_response.is_empty() {
                     Err(ClientError::UnexpectedResponseType(raw_response))
                 } else {
                     Err(ClientError::General(String::from("Empty response")))
@@ -505,7 +502,7 @@ impl Client {
         match serde_json::from_str::<response::ApiSuccessResponse>(&raw_response) {
             Ok(response) => Ok(response),
             Err(_) => {
-                if raw_response.len() > 0 {
+                if !raw_response.is_empty() {
                     Err(ClientError::UnexpectedResponseType(raw_response))
                 } else {
                     Err(ClientError::General(String::from("Empty response")))
@@ -771,10 +768,7 @@ mod tests {
             record_id
         );
         let mocker = get_mocker("GET", Matcher::Any, Some(&body));
-        let mut client = get_client(
-            Some(String::from(access_token)),
-            Some(String::from(api_domain)),
-        );
+        let mut client = get_client(Some(String::from(access_token)), Some(api_domain));
 
         let response = client.get::<ResponseRecord>("Accounts", record_id).unwrap();
 
@@ -793,10 +787,7 @@ mod tests {
             error_code
         );
         let mocker = get_mocker("GET", Matcher::Any, Some(&body));
-        let mut client = get_client(
-            Some(String::from(access_token)),
-            Some(String::from(api_domain)),
-        );
+        let mut client = get_client(Some(String::from(access_token)), Some(api_domain));
 
         match client.get::<ResponseRecord>("INVALID_MODULE", "00000") {
             Ok(_) => panic!("Response did not return an error"),
@@ -815,12 +806,9 @@ mod tests {
         let access_token = "9999.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
         let api_domain = mockito::server_url();
         let error_code = "invalid_client";
-        let body = format!("{}", error_code);
+        let body = error_code.to_string();
         let mocker = get_mocker("GET", Matcher::Any, Some(&body));
-        let mut client = get_client(
-            Some(String::from(access_token)),
-            Some(String::from(api_domain)),
-        );
+        let mut client = get_client(Some(String::from(access_token)), Some(api_domain));
 
         match client.get::<ResponseRecord>("INVALID_MODULE", "00000") {
             Ok(_) => panic!("Response did not return an error"),
@@ -864,7 +852,7 @@ mod tests {
             record_id
         );
         let mocker = get_mocker("POST", Matcher::Any, Some(&body));
-        let mut client = get_client(Some(access_token.to_string()), Some(api_domain.to_string()));
+        let mut client = get_client(Some(access_token.to_string()), Some(api_domain));
 
         let mut record: HashMap<&str, &str> = HashMap::new();
         record.insert("name", "New Record Name");
@@ -899,10 +887,7 @@ mod tests {
             error_code
         );
         let mocker = get_mocker("POST", Matcher::Any, Some(&body));
-        let mut client = get_client(
-            Some(String::from(access_token)),
-            Some(String::from(api_domain)),
-        );
+        let mut client = get_client(Some(String::from(access_token)), Some(api_domain));
 
         let mut record: HashMap<&str, &str> = HashMap::new();
         record.insert("name", "New Record Name");
@@ -924,12 +909,9 @@ mod tests {
         let access_token = "9999.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
         let api_domain = mockito::server_url();
         let error_code = "invalid_client";
-        let body = format!("{}", error_code);
+        let body = error_code.to_string();
         let mocker = get_mocker("POST", Matcher::Any, Some(&body));
-        let mut client = get_client(
-            Some(String::from(access_token)),
-            Some(String::from(api_domain)),
-        );
+        let mut client = get_client(Some(String::from(access_token)), Some(api_domain));
 
         let mut record: HashMap<&str, &str> = HashMap::new();
         record.insert("name", "New Record Name");
@@ -976,7 +958,7 @@ mod tests {
             record_id
         );
         let mocker = get_mocker("PUT", Matcher::Any, Some(&body));
-        let mut client = get_client(Some(access_token.to_string()), Some(api_domain.to_string()));
+        let mut client = get_client(Some(access_token.to_string()), Some(api_domain));
 
         let mut record: HashMap<&str, &str> = HashMap::new();
         record.insert("name", "New Record Name");
@@ -1011,10 +993,7 @@ mod tests {
             error_code
         );
         let mocker = get_mocker("PUT", Matcher::Any, Some(&body));
-        let mut client = get_client(
-            Some(String::from(access_token)),
-            Some(String::from(api_domain)),
-        );
+        let mut client = get_client(Some(String::from(access_token)), Some(api_domain));
 
         let mut record: HashMap<&str, &str> = HashMap::new();
         record.insert("name", "New Record Name");
@@ -1036,12 +1015,9 @@ mod tests {
         let access_token = "9999.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
         let api_domain = mockito::server_url();
         let error_code = "invalid_client";
-        let body = format!("{}", error_code);
+        let body = error_code.to_string();
         let mocker = get_mocker("PUT", Matcher::Any, Some(&body));
-        let mut client = get_client(
-            Some(String::from(access_token)),
-            Some(String::from(api_domain)),
-        );
+        let mut client = get_client(Some(String::from(access_token)), Some(api_domain));
 
         let mut record: HashMap<&str, &str> = HashMap::new();
         record.insert("name", "New Record Name");
