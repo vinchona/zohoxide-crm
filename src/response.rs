@@ -1,6 +1,7 @@
 //! Various response objects returned from Zoho.
 
 use serde::Deserialize;
+use std::fmt;
 
 /// Wrapper around a successful response using the `get()` method.
 #[derive(Debug, Deserialize)]
@@ -98,9 +99,8 @@ pub struct ApiErrorResponse {
     pub status: String,
 }
 
-impl ApiErrorResponse {
-    #[allow(dead_code)]
-    pub fn to_string(&self) -> String {
-        format!("[{}] {}", self.code, self.message)
+impl fmt::Display for ApiErrorResponse {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "[{}] {}", self.code, self.message)
     }
 }
