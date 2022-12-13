@@ -39,9 +39,9 @@ const DEFAULT_TIMEOUT: u64 = 30;
 ///
 /// API methods will automatically fetch a new token if one has not been set. This token is then
 /// saved internally to be used on all future requests.
-#[derive(TypedBuilder)]
-#[builder(doc)]
 #[cfg_attr(test, derive(PartialEq, Eq))]
+#[derive(TypedBuilder)]
+#[builder(doc, field_defaults(setter(into)))]
 pub struct Client {
     client_id: String,
     client_secret: String,
@@ -1059,19 +1059,19 @@ mod tests {
 
     #[test]
     fn test_builder_default_value() {
-        let client_id = String::from("client id");
-        let client_secret = String::from("client secret");
-        let refresh_token = String::from("refresh token");
+        let client_id = "client id";
+        let client_secret = "client secret";
+        let refresh_token = "refresh token";
         assert!(
             Client::builder()
-                .client_id(client_id.clone())
-                .client_secret(client_secret.clone())
-                .refresh_token(refresh_token.clone())
+                .client_id(client_id)
+                .client_secret(client_secret)
+                .refresh_token(refresh_token)
                 .build()
                 == Client {
-                    client_id: client_id,
-                    client_secret: client_secret,
-                    refresh_token: refresh_token,
+                    client_id: client_id.into(),
+                    client_secret: client_secret.into(),
+                    refresh_token: refresh_token.into(),
                     access_token: None,
                     api_domain: None,
                     sandbox: false,
