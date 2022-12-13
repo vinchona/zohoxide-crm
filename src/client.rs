@@ -105,7 +105,7 @@ impl Client {
     /// # let refresh_token = "YOUR_REFRESH_TOKEN";
     ///
     /// # let mut client = Client::builder()
-    ///  .access_token(Some(token.to_string()))
+    ///  .access_token(Some(String::from(token)))
     ///  .api_domain(None)
     ///  .client_id(client_id)
     ///  .client_secret(client_secret)
@@ -676,7 +676,7 @@ mod tests {
     #[test]
     fn api_domain() {
         let api_domain = "https://test.com";
-        let client = get_client(None, Some(api_domain.to_string()));
+        let client = get_client(None, Some(String::from(api_domain)));
 
         assert_eq!(api_domain, client.api_domain().unwrap());
     }
@@ -692,7 +692,7 @@ mod tests {
 
         let mut client = Client::builder()
             .access_token(None)
-            .api_domain(Some(api_domain.to_string()))
+            .api_domain(Some(String::from(api_domain)))
             .client_id(id)
             .client_secret(secret)
             .refresh_token(refresh_token)
@@ -718,7 +718,7 @@ mod tests {
         }
 
         mocker.assert();
-        assert_eq!(client.access_token(), Some(access_token.to_string()));
+        assert_eq!(client.access_token(), Some(String::from(access_token)));
     }
 
     #[test]
@@ -736,7 +736,7 @@ mod tests {
         client.get_new_token().unwrap();
 
         mocker.assert();
-        assert_eq!(client.api_domain(), Some(api_domain.to_string()));
+        assert_eq!(client.api_domain(), Some(String::from(api_domain)));
     }
 
     #[test]
@@ -774,7 +774,7 @@ mod tests {
         let token = client.get_new_token().unwrap();
 
         mocker.assert();
-        assert_eq!(token.access_token, Some(access_token.to_string()));
+        assert_eq!(token.access_token, Some(String::from(access_token)));
     }
 
     #[test]
@@ -793,7 +793,7 @@ mod tests {
         let token = client.get_new_token().unwrap();
 
         mocker.assert();
-        assert_eq!(token.api_domain, Some(api_domain.to_string()));
+        assert_eq!(token.api_domain, Some(String::from(api_domain)));
     }
 
     #[test]
@@ -891,7 +891,7 @@ mod tests {
             record_id
         );
         let mocker = get_mocker("POST", Matcher::Any, Some(&body));
-        let mut client = get_client(Some(access_token.to_string()), Some(api_domain));
+        let mut client = get_client(Some(String::from(access_token)), Some(api_domain));
 
         let mut record: HashMap<&str, &str> = HashMap::new();
         record.insert("name", "New Record Name");
@@ -997,7 +997,7 @@ mod tests {
             record_id
         );
         let mocker = get_mocker("PUT", Matcher::Any, Some(&body));
-        let mut client = get_client(Some(access_token.to_string()), Some(api_domain));
+        let mut client = get_client(Some(String::from(access_token)), Some(api_domain));
 
         let mut record: HashMap<&str, &str> = HashMap::new();
         record.insert("name", "New Record Name");
