@@ -8,6 +8,8 @@ use typed_builder::TypedBuilder;
 
 /// Default network timeout for API requests.
 const DEFAULT_TIMEOUT: u64 = 30;
+const DEFAULT_OAUTH_DOMAIN: &'static str = "https://accounts.zoho.com";
+const DEFAULT_API_DOMAIN: &'static str = "https://www.zohoapis.com";
 
 /// Handles making requests to v2 of the Zoho CRM API.
 ///
@@ -52,9 +54,9 @@ pub struct Client {
     refresh_token: String,
     #[builder(default)]
     access_token: Option<String>,
-    #[builder(default = Some(String::from("https://accounts.zoho.com")))]
+    #[builder(default = Some(String::from(DEFAULT_OAUTH_DOMAIN)))]
     oauth_domain: Option<String>,
-    #[builder(default = Some(String::from("https://www.zohoapis.com")))]
+    #[builder(default = Some(String::from(DEFAULT_API_DOMAIN)))]
     api_domain: Option<String>,
     #[builder(default)]
     sandbox: bool,
@@ -1090,8 +1092,8 @@ mod tests {
                     client_secret: client_secret.into(),
                     refresh_token: refresh_token.into(),
                     access_token: None,
-                    oauth_domain: Some(String::from("accounts.zoho.com")),
-                    api_domain: Some(String::from("https://www.zohoapis.com")),
+                    oauth_domain: Some(String::from(DEFAULT_OAUTH_DOMAIN)),
+                    api_domain: Some(String::from(DEFAULT_API_DOMAIN)),
                     sandbox: false,
                     timeout: DEFAULT_TIMEOUT,
                 }
