@@ -51,7 +51,7 @@ pub struct Client {
     refresh_token: String,
     #[builder(default)]
     access_token: Option<String>,
-    #[builder(default)]
+    #[builder(default = Some(String::from("https://www.zohoapis.com")))]
     api_domain: Option<String>,
     #[builder(default)]
     sandbox: bool,
@@ -1079,7 +1079,7 @@ mod tests {
                     client_secret: client_secret.into(),
                     refresh_token: refresh_token.into(),
                     access_token: None,
-                    api_domain: None,
+                    api_domain: Some(String::from("https://www.zohoapis.com")),
                     sandbox: false,
                     timeout: DEFAULT_TIMEOUT,
                 }
