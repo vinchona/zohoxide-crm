@@ -1,6 +1,6 @@
 [package]
 name = "zohoxide-crm"
-version = "0.3.1"
+version = "0.4.0"
 description = "Library to help interact with v2 of the Zoho CRM API."
 license = "MIT"
 readme = "README.md"
