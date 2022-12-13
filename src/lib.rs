@@ -51,5 +51,6 @@ mod token_record;
 
 pub use client::parse_params;
 pub use client::Client;
+pub use client::ClientBuilder;
 pub use client_error::ClientError;
 pub use token_record::TokenRecord;
