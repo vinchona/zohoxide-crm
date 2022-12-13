@@ -27,8 +27,8 @@
 //!     .client_secret(client_secret)
 //!     .refresh_token(refresh_token)
 //!     .access_token(None) // optional
-//!     .oauth_domain(None) // optional
-//!     .api_domain(None) // optional
+//!     .oauth_domain(Some(String::from("https://accounts.zoho.com"))) // optional
+//!     .api_domain(Some(String::from("https://zohoapis.com"))) // optional
 //!     .sandbox(false) // optional
 //!     .timeout(30u64) // optional
 //!     .build();
