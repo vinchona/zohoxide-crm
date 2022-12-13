@@ -20,19 +20,22 @@ serde = { version = "1.0", features = ["derive"] }
 
 ```rust
 use serde::Deserialize;
-use zohoxide_crm::ZohoClient;
+use zohoxide_crm::Client;
 
-let client_id = String::from("YOUR_CLIENT_ID");
-let client_secret = String::from("YOUR_CLIENT_SECRET");
-let refresh_token = String::from("YOUR_REFRESH_TOKEN");
+let client_id = "YOUR_CLIENT_ID";
+let client_secret = "YOUR_CLIENT_SECRET";
+let refresh_token = "YOUR_REFRESH_TOKEN";
 
-let mut client = ZohoClient::with_creds(
-    None, // access token
-    None, // api domain
-    client_id,
-    client_secret,
-    refresh_token
-);
+let mut client = Client::builder()
+    .client_id(client_id)
+    .client_secret(client_secret)
+    .refresh_token(refresh_token)
+    .access_token(None) // optional
+    .oauth_domain(Some(String::from("https://accounts.zoho.com"))) // optional
+    .api_domain(Some(String::from("https://zohoapis.com"))) // optional
+    .sandbox(false) // optional
+    .timeout(30u64) // optional
+    .build();
 
 #[derive(Debug, Deserialize)]
 struct Account {
