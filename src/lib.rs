@@ -28,6 +28,8 @@
 //!     .refresh_token(refresh_token)
 //!     .access_token(None) // optional
 //!     .api_domain(None) // optional
+//!     .sandbox(false) // optional
+//!     .timeout(30u64) // optional
 //!     .build();
 //!
 //! #[derive(Debug, Deserialize)]

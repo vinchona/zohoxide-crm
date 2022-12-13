@@ -106,7 +106,6 @@ impl Client {
     ///
     /// # let mut client = Client::builder()
     ///  .access_token(Some(String::from(token)))
-    ///  .api_domain(None)
     ///  .client_id(client_id)
     ///  .client_secret(client_secret)
     ///  .refresh_token(refresh_token)
@@ -204,8 +203,6 @@ impl Client {
     /// # let client_secret = "";
     /// # let refresh_token = "";
     /// let mut client = Client::builder()
-    /// .access_token(None)
-    /// .api_domain(None)
     /// .client_id(client_id)
     /// .client_secret(client_secret)
     /// .refresh_token(refresh_token)
@@ -276,8 +273,6 @@ impl Client {
     /// # let client_secret = "";
     /// # let refresh_token = "";
     /// let mut client = Client::builder()
-    /// .access_token(None)
-    /// .api_domain(None)
     /// .client_id(client_id)
     /// .client_secret(client_secret)
     /// .refresh_token(refresh_token)
@@ -303,8 +298,6 @@ impl Client {
     /// # let refresh_token = "";
     ///
     /// # let mut client = Client::builder()
-    /// .access_token(None)
-    /// .api_domain(None)
     /// .client_id(client_id)
     /// .client_secret(client_secret)
     /// .refresh_token(refresh_token)
@@ -381,8 +374,6 @@ impl Client {
     /// # let client_secret = "";
     /// # let refresh_token = "";
     /// # let mut zoho_client = Client::builder()
-    /// .access_token(None)
-    /// .api_domain(None)
     /// .client_id(client_id)
     /// .client_secret(client_secret)
     /// .refresh_token(refresh_token)
@@ -468,8 +459,6 @@ impl Client {
     /// # let client_secret = "";
     /// # let refresh_token = "";
     /// # let mut zoho_client = Client::builder()
-    /// .access_token(None)
-    /// .api_domain(None)
     /// .client_id(client_id)
     /// .client_secret(client_secret)
     /// .refresh_token(refresh_token)
@@ -553,8 +542,6 @@ impl Client {
 /// #     id: String,
 /// # }
 /// # let mut client = Client::builder()
-/// .access_token(None)
-/// .api_domain(None)
 /// .client_id("")
 /// .client_secret("")
 /// .refresh_token("")
@@ -691,7 +678,6 @@ mod tests {
         let refresh_token = "refresh_token";
 
         let mut client = Client::builder()
-            .access_token(None)
             .api_domain(Some(String::from(api_domain)))
             .client_id(id)
             .client_secret(secret)
