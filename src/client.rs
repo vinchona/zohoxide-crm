@@ -65,19 +65,9 @@ impl Client {
         self.sandbox
     }
 
-    /// Have the client use sandbox URLs.
-    pub fn set_sandbox(&mut self, sandbox: bool) {
-        self.sandbox = sandbox
-    }
-
     /// Get the timeout (in seconds) for API requests.
     pub fn timeout(&self) -> u64 {
         self.timeout
-    }
-
-    /// Set the timeout for API requests. Default is 30 seconds.
-    pub fn set_timeout(&mut self, timeout: u64) {
-        self.timeout = timeout;
     }
 
     /// Get the access token.
@@ -677,14 +667,13 @@ mod tests {
         let secret = "secret";
         let refresh_token = "refresh_token";
 
-        let mut client = Client::builder()
+        let client = Client::builder()
             .api_domain(Some(String::from(api_domain)))
             .client_id(id)
             .client_secret(secret)
             .refresh_token(refresh_token)
+            .sandbox(true)
             .build();
-
-        client.set_sandbox(true);
 
         assert_eq!(sandbox_api_domain, client.api_domain().unwrap());
     }
