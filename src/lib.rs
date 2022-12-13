@@ -18,9 +18,9 @@
 //! use serde::Deserialize;
 //! use zohoxide_crm::Client;
 //!
-//! let client_id = String::from("YOUR_CLIENT_ID");
-//! let client_secret = String::from("YOUR_CLIENT_SECRET");
-//! let refresh_token = String::from("YOUR_REFRESH_TOKEN");
+//! let client_id = "YOUR_CLIENT_ID";
+//! let client_secret = "YOUR_CLIENT_SECRET";
+//! let refresh_token = "YOUR_REFRESH_TOKEN";
 //!
 //! let mut client = Client::builder()
 //!     .client_id(client_id)

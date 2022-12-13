@@ -31,9 +31,9 @@ const DEFAULT_TIMEOUT: u64 = 30;
 /// let client = Client::builder()
 ///     .access_token(None) // access token
 ///     .api_domain(None) // api domain
-///     .client_id(String::from(client_id))
-///     .client_secret(String::from(client_secret))
-///     .refresh_token(String::from(refresh_token))
+///     .client_id(client_id)
+///     .client_secret(client_secret)
+///     .refresh_token(refresh_token)
 ///     .build();
 ///
 /// ```
@@ -98,9 +98,9 @@ impl Client {
     /// ```
     /// # use zohoxide_crm::Client;
     /// let token = "1000.ad8f97a9sd7f9a7sdf7a89s7df87a9s8.a77fd8a97fa89sd7f89a7sdf97a89df3";
-    /// # let client_id = String::from("YOUR_CLIENT_ID");
-    /// # let client_secret = String::from("YOUR_CLIENT_SECRET");
-    /// # let refresh_token = String::from("YOUR_REFRESH_TOKEN");
+    /// # let client_id = "YOUR_CLIENT_ID";
+    /// # let client_secret = "YOUR_CLIENT_SECRET";
+    /// # let refresh_token = "YOUR_REFRESH_TOKEN";
     ///
     /// # let mut client = Client::builder()
     ///  .access_token(Some(token.to_string()))
@@ -198,9 +198,9 @@ impl Client {
     ///     name: String,
     /// }
     ///
-    /// # let client_id = String::from("");
-    /// # let client_secret = String::from("");
-    /// # let refresh_token = String::from("");
+    /// # let client_id = "";
+    /// # let client_secret = "";
+    /// # let refresh_token = "";
     /// let mut client = Client::builder()
     /// .access_token(None)
     /// .api_domain(None)
@@ -270,9 +270,9 @@ impl Client {
     ///     name: String,
     /// }
     ///
-    /// # let client_id = String::from("");
-    /// # let client_secret = String::from("");
-    /// # let refresh_token = String::from("");
+    /// # let client_id = "";
+    /// # let client_secret = "";
+    /// # let refresh_token = "";
     /// let mut client = Client::builder()
     /// .access_token(None)
     /// .api_domain(None)
@@ -296,9 +296,9 @@ impl Client {
     ///     name: String,
     /// }
     ///
-    /// # let client_id = String::from("");
-    /// # let client_secret = String::from("");
-    /// # let refresh_token = String::from("");
+    /// # let client_id = "";
+    /// # let client_secret = "";
+    /// # let refresh_token = "";
     ///
     /// # let mut client = Client::builder()
     /// .access_token(None)
@@ -375,9 +375,9 @@ impl Client {
     /// ```no_run
     /// # use std::collections::HashMap;
     /// # use zohoxide_crm::Client;
-    /// # let client_id = String::from("");
-    /// # let client_secret = String::from("");
-    /// # let refresh_token = String::from("");
+    /// # let client_id = "";
+    /// # let client_secret = "";
+    /// # let refresh_token = "";
     /// # let mut zoho_client = Client::builder()
     /// .access_token(None)
     /// .api_domain(None)
@@ -462,9 +462,9 @@ impl Client {
     /// ```no_run
     /// # use std::collections::HashMap;
     /// # use zohoxide_crm::Client;
-    /// # let client_id = String::from("");
-    /// # let client_secret = String::from("");
-    /// # let refresh_token = String::from("");
+    /// # let client_id = "";
+    /// # let client_secret = "";
+    /// # let refresh_token = "";
     /// # let mut zoho_client = Client::builder()
     /// .access_token(None)
     /// .api_domain(None)
@@ -553,9 +553,9 @@ impl Client {
 /// # let mut client = Client::builder()
 /// .access_token(None)
 /// .api_domain(None)
-/// .client_id(String::from(""))
-/// .client_secret(String::from(""))
-/// .refresh_token(String::from(""))
+/// .client_id("")
+/// .client_secret("")
+/// .refresh_token("")
 /// .build();
 ///
 /// let mut params: HashMap<&str, &str> = HashMap::new();
@@ -589,9 +589,9 @@ mod tests {
 
     /// Get a `Client` with an access token.
     fn get_client(access_token: Option<String>, api_domain: Option<String>) -> Client {
-        let id = String::from("id");
-        let secret = String::from("secret");
-        let refresh_token = String::from("refresh_token");
+        let id = "id";
+        let secret = "secret";
+        let refresh_token = "refresh_token";
 
         Client::builder()
             .access_token(access_token)
@@ -684,9 +684,9 @@ mod tests {
         let api_domain = "https://test.com";
         let sandbox_api_domain = "https://crmsandbox.zoho.com";
 
-        let id = String::from("id");
-        let secret = String::from("secret");
-        let refresh_token = String::from("refresh_token");
+        let id = "id";
+        let secret = "secret";
+        let refresh_token = "refresh_token";
 
         let mut client = Client::builder()
             .access_token(None)
