@@ -19,7 +19,7 @@ const DEFAULT_TIMEOUT: u64 = 30;
 ///
 /// ### Example
 ///
-/// You should create a [`Client`](struct.Client) with the [`with_creds()`](struct.Client.html#method.with_creds) method.
+/// You should create a [`Client`](struct.Client) with the [`builder()`](struct.Client.html#method.builder) method.
 ///
 /// ```
 /// use zohoxide_crm::Client;
@@ -28,13 +28,14 @@ const DEFAULT_TIMEOUT: u64 = 30;
 /// let client_secret = "YOUR_CLIENT_SECRET";
 /// let refresh_token = "YOUR_REFRESH_TOKEN";
 ///
-/// let client = Client::with_creds(
-///     None, // access token
-///     None, // api domain
-///     String::from(client_id),
-///     String::from(client_secret),
-///     String::from(refresh_token)
-/// );
+/// let client = Client::builder()
+///     .access_token(None) // access token
+///     .api_domain(None) // api domain
+///     .client_id(String::from(client_id))
+///     .client_secret(String::from(client_secret))
+///     .refresh_token(String::from(refresh_token))
+///     .build();
+///
 /// ```
 ///
 /// API methods will automatically fetch a new token if one has not been set. This token is then
@@ -54,30 +55,6 @@ pub struct Client {
     sandbox: bool,
     #[builder(default = DEFAULT_TIMEOUT)]
     timeout: u64,
-}
-
-impl Client {
-    /// Create a new client.
-    ///
-    /// You can supply an optional access token and/or api domain. However, you must supply
-    /// a client ID, secret, and refresh token.
-    pub fn with_creds(
-        access_token: Option<String>,
-        api_domain: Option<String>,
-        client_id: String,
-        client_secret: String,
-        refresh_token: String,
-    ) -> Client {
-        Client {
-            access_token,
-            api_domain,
-            client_id,
-            client_secret,
-            refresh_token,
-            sandbox: false,
-            timeout: DEFAULT_TIMEOUT,
-        }
-    }
 }
 
 impl Client {
@@ -125,7 +102,13 @@ impl Client {
     /// # let client_secret = String::from("YOUR_CLIENT_SECRET");
     /// # let refresh_token = String::from("YOUR_REFRESH_TOKEN");
     ///
-    /// # let mut client = Client::with_creds(Some(token.to_string()), None, client_id, client_secret, refresh_token);
+    /// # let mut client = Client::builder()
+    ///  .access_token(Some(token.to_string()))
+    ///  .api_domain(None)
+    ///  .client_id(client_id)
+    ///  .client_secret(client_secret)
+    ///  .refresh_token(refresh_token)
+    ///  .build();
     ///
     /// assert_eq!("1000.ad8f..9df3", &client.abbreviated_access_token().unwrap());
     /// ```
@@ -218,7 +201,13 @@ impl Client {
     /// # let client_id = String::from("");
     /// # let client_secret = String::from("");
     /// # let refresh_token = String::from("");
-    /// let mut client = Client::with_creds(None, None, client_id, client_secret, refresh_token);
+    /// let mut client = Client::builder()
+    /// .access_token(None)
+    /// .api_domain(None)
+    /// .client_id(client_id)
+    /// .client_secret(client_secret)
+    /// .refresh_token(refresh_token)
+    /// .build();
     ///
     /// let response = client.get::<Account>("Accounts", "ZOHO_ID_HERE").unwrap();
     ///
@@ -284,7 +273,13 @@ impl Client {
     /// # let client_id = String::from("");
     /// # let client_secret = String::from("");
     /// # let refresh_token = String::from("");
-    /// let mut client = Client::with_creds(None, None, client_id, client_secret, refresh_token);
+    /// let mut client = Client::builder()
+    /// .access_token(None)
+    /// .api_domain(None)
+    /// .client_id(client_id)
+    /// .client_secret(client_secret)
+    /// .refresh_token(refresh_token)
+    /// .build();
     ///
     /// let accounts = client.get_many::<Account>("Accounts", None).unwrap();
     /// ```
@@ -305,7 +300,13 @@ impl Client {
     /// # let client_secret = String::from("");
     /// # let refresh_token = String::from("");
     ///
-    /// # let mut client = Client::with_creds(None, None, client_id, client_secret, refresh_token);
+    /// # let mut client = Client::builder()
+    /// .access_token(None)
+    /// .api_domain(None)
+    /// .client_id(client_id)
+    /// .client_secret(client_secret)
+    /// .refresh_token(refresh_token)
+    /// .build();
     ///
     /// let mut params: HashMap<&str, &str> = HashMap::new();
     /// params.insert("cvid", "YOUR_VIEW_ID_HERE");
@@ -377,7 +378,14 @@ impl Client {
     /// # let client_id = String::from("");
     /// # let client_secret = String::from("");
     /// # let refresh_token = String::from("");
-    /// # let mut zoho_client = Client::with_creds(None, None, client_id, client_secret, refresh_token);
+    /// # let mut zoho_client = Client::builder()
+    /// .access_token(None)
+    /// .api_domain(None)
+    /// .client_id(client_id)
+    /// .client_secret(client_secret)
+    /// .refresh_token(refresh_token)
+    /// .build();
+    ///
     /// let mut record: HashMap<&str, &str> = HashMap::new();
     /// record.insert("name", "sample");
     ///
@@ -457,7 +465,14 @@ impl Client {
     /// # let client_id = String::from("");
     /// # let client_secret = String::from("");
     /// # let refresh_token = String::from("");
-    /// # let mut zoho_client = Client::with_creds(None, None, client_id, client_secret, refresh_token);
+    /// # let mut zoho_client = Client::builder()
+    /// .access_token(None)
+    /// .api_domain(None)
+    /// .client_id(client_id)
+    /// .client_secret(client_secret)
+    /// .refresh_token(refresh_token)
+    /// .build();
+    ///
     /// let mut record: HashMap<&str, &str> = HashMap::new();
     /// record.insert("id", "ZOHO_RECORD_ID_HERE");
     /// record.insert("name", "sample");
@@ -535,7 +550,14 @@ impl Client {
 /// # struct Record {
 /// #     id: String,
 /// # }
-/// # let mut client = Client::with_creds(None, None, String::from(""), String::from(""), String::from(""));
+/// # let mut client = Client::builder()
+/// .access_token(None)
+/// .api_domain(None)
+/// .client_id(String::from(""))
+/// .client_secret(String::from(""))
+/// .refresh_token(String::from(""))
+/// .build();
+///
 /// let mut params: HashMap<&str, &str> = HashMap::new();
 /// params.insert("page", "2");
 ///
@@ -571,7 +593,13 @@ mod tests {
         let secret = String::from("secret");
         let refresh_token = String::from("refresh_token");
 
-        Client::with_creds(access_token, api_domain, id, secret, refresh_token)
+        Client::builder()
+            .access_token(access_token)
+            .api_domain(api_domain)
+            .client_id(id)
+            .client_secret(secret)
+            .refresh_token(refresh_token)
+            .build()
     }
 
     /// Get an HTTP mocker.
@@ -660,13 +688,14 @@ mod tests {
         let secret = String::from("secret");
         let refresh_token = String::from("refresh_token");
 
-        let mut client = Client::with_creds(
-            None,
-            Some(api_domain.to_string()),
-            id,
-            secret,
-            refresh_token,
-        );
+        let mut client = Client::builder()
+            .access_token(None)
+            .api_domain(Some(api_domain.to_string()))
+            .client_id(id)
+            .client_secret(secret)
+            .refresh_token(refresh_token)
+            .build();
+
         client.set_sandbox(true);
 
         assert_eq!(sandbox_api_domain, client.api_domain().unwrap());
