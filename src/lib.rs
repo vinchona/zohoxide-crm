@@ -22,13 +22,13 @@
 //! let client_secret = String::from("YOUR_CLIENT_SECRET");
 //! let refresh_token = String::from("YOUR_REFRESH_TOKEN");
 //!
-//! let mut client = Client::with_creds(
-//!     None, // access token
-//!     None, // api domain
-//!     client_id,
-//!     client_secret,
-//!     refresh_token
-//! );
+//! let mut client = Client::builder()
+//!     .client_id(client_id)
+//!     .client_secret(client_secret)
+//!     .refresh_token(refresh_token)
+//!     .access_token(None) // optional
+//!     .api_domain(None) // optional
+//!     .build();
 //!
 //! #[derive(Debug, Deserialize)]
 //! struct Account {
