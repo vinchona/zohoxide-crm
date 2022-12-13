@@ -29,11 +29,13 @@ const DEFAULT_TIMEOUT: u64 = 30;
 /// let refresh_token = "YOUR_REFRESH_TOKEN";
 ///
 /// let client = Client::builder()
-///     .access_token(None) // access token
-///     .api_domain(None) // api domain
 ///     .client_id(client_id)
 ///     .client_secret(client_secret)
 ///     .refresh_token(refresh_token)
+///     .access_token(None) // optional
+///     .api_domain(None) // optional
+///     .sandbox(false) // optional
+///     .timeout(30u64) // optional
 ///     .build();
 ///
 /// ```
