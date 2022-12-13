@@ -531,7 +531,7 @@ impl Client {
 /// # struct Record {
 /// #     id: String,
 /// # }
-/// # let mut client = Client::builder()
+/// let mut client = Client::builder()
 /// .client_id("")
 /// .client_secret("")
 /// .refresh_token("")
