@@ -97,7 +97,7 @@ impl Client {
     /// # let client_secret = "YOUR_CLIENT_SECRET";
     /// # let refresh_token = "YOUR_REFRESH_TOKEN";
     ///
-    /// # let mut client = Client::builder()
+    /// let mut client = Client::builder()
     ///  .access_token(Some(String::from(token)))
     ///  .client_id(client_id)
     ///  .client_secret(client_secret)
