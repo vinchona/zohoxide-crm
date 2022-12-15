@@ -5,6 +5,7 @@ use crate::token_record::TokenRecord;
 use std::collections::HashMap;
 use std::time::Duration;
 use typed_builder::TypedBuilder;
+use anyhow::Result;
 
 /// Default network timeout for API requests.
 const DEFAULT_TIMEOUT: u64 = 30;
