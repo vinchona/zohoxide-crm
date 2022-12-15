@@ -244,7 +244,7 @@ impl Client {
                 if !raw_response.is_empty() {
                     Err(ClientError::UnexpectedResponseType(raw_response))
                 } else {
-                    Err(ClientError::General(String::from("Empty response")))
+                    Err(ClientError::EmptyResponse)
                 }
             }
         }
@@ -347,7 +347,7 @@ impl Client {
                 if !raw_response.is_empty() {
                     Err(ClientError::UnexpectedResponseType(raw_response))
                 } else {
-                    Err(ClientError::General(String::from("Empty response")))
+                    Err(ClientError::EmptyResponse)
                 }
             }
         }
@@ -432,7 +432,7 @@ impl Client {
                 if !raw_response.is_empty() {
                     Err(ClientError::UnexpectedResponseType(raw_response))
                 } else {
-                    Err(ClientError::General(String::from("Empty response")))
+                    Err(ClientError::EmptyResponse)
                 }
             }
         }
@@ -517,7 +517,7 @@ impl Client {
                 if !raw_response.is_empty() {
                     Err(ClientError::UnexpectedResponseType(raw_response))
                 } else {
-                    Err(ClientError::General(String::from("Empty response")))
+                    Err(ClientError::EmptyResponse)
                 }
             }
         }
