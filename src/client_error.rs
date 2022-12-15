@@ -11,6 +11,9 @@ pub enum ClientError {
     /// custom data type. The raw response will be returned with this error.
     UnexpectedResponseType(String),
 
+    /// Error return when a response from the API is empty
+    EmptyResponse,
+
     /// Error returned from most API requests.
     ApiError(ApiErrorResponse),
 }
@@ -20,6 +23,7 @@ impl fmt::Display for ClientError {
         match self {
             ClientError::General(error) => write!(f, "{}", error),
             ClientError::UnexpectedResponseType(error) => write!(f, "{}", error),
+            ClientError::EmptyResponse => write!(f, "Empty response"),
             ClientError::ApiError(error) => write!(f, "{}", error),
         }
     }
