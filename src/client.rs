@@ -5,7 +5,7 @@ use crate::token_record::TokenRecord;
 use std::collections::HashMap;
 use std::time::Duration;
 use typed_builder::TypedBuilder;
-use anyhow::Result;
+use anyhow::{bail, Result};
 
 /// Default network timeout for API requests.
 const DEFAULT_TIMEOUT: u64 = 30;
@@ -147,7 +147,7 @@ impl Client {
     /// The access token is saved to the [`Client`](struct.Client), so you don't
     /// need to retrieve the token and set it in different steps. But a copy
     /// of it is returned by this method.
-    pub fn get_new_token(&mut self) -> Result<TokenRecord, ClientError> {
+    pub fn get_new_token(&mut self) -> Result<TokenRecord> {
         let url = format!(
             "{}/oauth/v2/token?grant_type=refresh_token&client_id={}&client_secret={}&refresh_token={}",
             self.get_oauth_domain(),
@@ -162,7 +162,7 @@ impl Client {
 
         // TODO: refactor this with a more idiomatic pattern
         if let Ok(response) = serde_json::from_str::<response::AuthErrorResponse>(&raw_response) {
-            return Err(ClientError::General(response.error));
+            bail!(response.error);
         }
 
         let api_response: TokenRecord = serde_json::from_str(&raw_response)?;
@@ -172,7 +172,7 @@ impl Client {
 
         match &self.access_token {
             Some(_) => Ok(api_response),
-            None => Err(ClientError::from("No token received")),
+            None => bail!("No token received"),
         }
     }
 
@@ -216,7 +216,7 @@ impl Client {
         &mut self,
         module: &str,
         id: &str,
-    ) -> Result<response::ApiGetResponse<T>, ClientError> {
+    ) -> Result<response::ApiGetResponse<T>> {
         if self.access_token.is_none() {
             self.get_new_token()?;
         }
@@ -236,16 +236,16 @@ impl Client {
         let raw_response = response.text()?;
 
         if let Ok(response) = serde_json::from_str::<response::ApiErrorResponse>(&raw_response) {
-            return Err(ClientError::ApiError(response));
+            bail!(ClientError::ApiError(response))
         }
 
         match serde_json::from_str::<response::ApiGetResponse<T>>(&raw_response) {
             Ok(data) => Ok(data),
             Err(_) => {
                 if !raw_response.is_empty() {
-                    Err(ClientError::UnexpectedResponseType(raw_response))
+                    bail!(ClientError::UnexpectedResponseType(raw_response))
                 } else {
-                    Err(ClientError::EmptyResponse)
+                    bail!(ClientError::EmptyResponse)
                 }
             }
         }
@@ -314,7 +314,7 @@ impl Client {
         &mut self,
         module: &str,
         params: Option<String>,
-    ) -> Result<response::ApiGetManyResponse<T>, ClientError> {
+    ) -> Result<response::ApiGetManyResponse<T>> {
         if self.access_token.is_none() {
             self.get_new_token()?;
         }
@@ -339,16 +339,16 @@ impl Client {
         let raw_response = response.text()?;
 
         if let Ok(response) = serde_json::from_str::<response::ApiErrorResponse>(&raw_response) {
-            return Err(ClientError::ApiError(response));
+            bail!(ClientError::ApiError(response));
         }
 
         match serde_json::from_str::<response::ApiGetManyResponse<T>>(&raw_response) {
             Ok(data) => Ok(data),
             Err(_) => {
                 if !raw_response.is_empty() {
-                    Err(ClientError::UnexpectedResponseType(raw_response))
+                    bail!(ClientError::UnexpectedResponseType(raw_response))
                 } else {
-                    Err(ClientError::EmptyResponse)
+                    bail!(ClientError::EmptyResponse)
                 }
             }
         }
@@ -394,7 +394,7 @@ impl Client {
         &mut self,
         module: &str,
         data: Vec<T>,
-    ) -> Result<response::ApiSuccessResponse, ClientError>
+    ) -> Result<response::ApiSuccessResponse>
     where
         T: serde::ser::Serialize,
     {
@@ -424,16 +424,16 @@ impl Client {
         let raw_response = response.text()?;
 
         if let Ok(response) = serde_json::from_str::<response::ApiErrorResponse>(&raw_response) {
-            return Err(ClientError::ApiError(response));
+            bail!(ClientError::ApiError(response));
         }
 
         match serde_json::from_str::<response::ApiSuccessResponse>(&raw_response) {
             Ok(response) => Ok(response),
             Err(_) => {
                 if !raw_response.is_empty() {
-                    Err(ClientError::UnexpectedResponseType(raw_response))
+                    bail!(ClientError::UnexpectedResponseType(raw_response))
                 } else {
-                    Err(ClientError::EmptyResponse)
+                    bail!(ClientError::EmptyResponse)
                 }
             }
         }
@@ -480,7 +480,7 @@ impl Client {
         &mut self,
         module: &str,
         data: Vec<T>,
-    ) -> Result<response::ApiSuccessResponse, ClientError>
+    ) -> Result<response::ApiSuccessResponse>
     where
         T: serde::ser::Serialize,
     {
@@ -509,16 +509,16 @@ impl Client {
         let raw_response = response.text()?;
 
         if let Ok(response) = serde_json::from_str::<response::ApiErrorResponse>(&raw_response) {
-            return Err(ClientError::ApiError(response));
+            bail!(ClientError::ApiError(response));
         }
 
         match serde_json::from_str::<response::ApiSuccessResponse>(&raw_response) {
             Ok(response) => Ok(response),
             Err(_) => {
                 if !raw_response.is_empty() {
-                    Err(ClientError::UnexpectedResponseType(raw_response))
+                    bail!(ClientError::UnexpectedResponseType(raw_response))
                 } else {
-                    Err(ClientError::EmptyResponse)
+                    bail!(ClientError::EmptyResponse)
                 }
             }
         }
@@ -819,8 +819,8 @@ mod tests {
 
         match client.get::<ResponseRecord>("INVALID_MODULE", "00000") {
             Ok(_) => panic!("Response did not return an error"),
-            Err(err) => match err {
-                ClientError::ApiError(error) => assert_eq!(error.code, error_code),
+            Err(err) => match err.downcast() {
+                Ok(ClientError::ApiError(error)) => assert_eq!(error.code, error_code),
                 _ => panic!("Wrong error type"),
             },
         }
@@ -922,8 +922,8 @@ mod tests {
 
         match client.insert("INVALID_MODULE", vec![record]) {
             Ok(_) => panic!("Response did not return an error"),
-            Err(err) => match err {
-                ClientError::ApiError(error) => assert_eq!(error.code, error_code),
+            Err(err) => match err.downcast() {
+                Ok(ClientError::ApiError(error)) => assert_eq!(error.code, error_code),
                 _ => panic!("Wrong error type"),
             },
         }
@@ -1028,8 +1028,8 @@ mod tests {
 
         match client.update_many("INVALID_MODULE", vec![record]) {
             Ok(_) => panic!("Response did not return an error"),
-            Err(err) => match err {
-                ClientError::ApiError(error) => assert_eq!(error.code, error_code),
+            Err(err) => match err.downcast() {
+                Ok(ClientError::ApiError(error)) => assert_eq!(error.code, error_code),
                 _ => panic!("Wrong error type"),
             },
         }
