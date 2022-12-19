@@ -21,10 +21,12 @@ include = [
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+anyhow = {version = "1.0.66", features = ["std", "backtrace"] }
 reqwest = "0.9.18"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 serde_urlencoded = "0.5.1"
+thiserror = "1.0.37"
 typed-builder = "0.11.0"
 
 [dev-dependencies]

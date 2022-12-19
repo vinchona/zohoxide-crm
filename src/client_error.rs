@@ -1,56 +1,23 @@
 use crate::response::ApiErrorResponse;
-use std::fmt;
+use thiserror::Error;
 
 /// Various errors returned by the API.
-#[derive(Debug)]
+#[derive(Error, Debug)]
 pub enum ClientError {
     /// General error message that encompasses almost any non-token related error message.
-    General(String),
+    #[error(transparent)]
+    General(#[from] anyhow::Error),
 
     /// Error returned when a response from the API does not deserialize into the user's
     /// custom data type. The raw response will be returned with this error.
+    #[error("{0}")]
     UnexpectedResponseType(String),
 
+    /// Error return when a response from the API is empty
+    #[error("Empty response")]
+    EmptyResponse,
+
     /// Error returned from most API requests.
+    #[error("{0}")]
     ApiError(ApiErrorResponse),
-}
-
-impl fmt::Display for ClientError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            ClientError::General(error) => write!(f, "{}", error),
-            ClientError::UnexpectedResponseType(error) => write!(f, "{}", error),
-            ClientError::ApiError(error) => write!(f, "{}", error),
-        }
-    }
-}
-
-impl From<String> for ClientError {
-    fn from(err: String) -> ClientError {
-        ClientError::General(err)
-    }
-}
-
-impl From<serde_json::Error> for ClientError {
-    fn from(err: serde_json::Error) -> Self {
-        ClientError::General(err.to_string())
-    }
-}
-
-impl From<serde_urlencoded::ser::Error> for ClientError {
-    fn from(err: serde_urlencoded::ser::Error) -> Self {
-        ClientError::General(err.to_string())
-    }
-}
-
-impl From<&str> for ClientError {
-    fn from(err: &str) -> ClientError {
-        ClientError::General(String::from(err))
-    }
-}
-
-impl From<reqwest::Error> for ClientError {
-    fn from(err: reqwest::Error) -> ClientError {
-        ClientError::General(err.to_string())
-    }
 }
