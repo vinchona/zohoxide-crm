@@ -2,10 +2,10 @@ use crate::client_error::ClientError;
 use crate::response;
 use crate::token_record::TokenRecord;
 
+use anyhow::{bail, Result};
 use std::collections::HashMap;
 use std::time::Duration;
 use typed_builder::TypedBuilder;
-use anyhow::{bail, Result};
 
 /// Default network timeout for API requests.
 const DEFAULT_TIMEOUT: u64 = 30;
@@ -390,11 +390,7 @@ impl Client {
     ///     }
     /// }
     /// ```
-    pub fn insert<T>(
-        &mut self,
-        module: &str,
-        data: Vec<T>,
-    ) -> Result<response::ApiSuccessResponse>
+    pub fn insert<T>(&mut self, module: &str, data: Vec<T>) -> Result<response::ApiSuccessResponse>
     where
         T: serde::ser::Serialize,
     {
