@@ -1,12 +1,12 @@
 [package]
 name = "zohoxide-crm"
-version = "0.4.3"
+version = "0.4.4"
 description = "Library to help interact with v2 of the Zoho CRM API."
 license = "MIT"
 readme = "README.md"
 repository = "https://github.com/vinchona/zohoxide-crm"
 homepage = "https://github.com/vinchona/zohoxide-crm"
-documentation = "https://docs.rs/zohoxide-crm/0.4.3/zohoxide_crm"
+documentation = "https://docs.rs/zohoxide-crm/0.4.4/zohoxide_crm"
 authors = ["rideron89", "vinchona"]
 edition = "2021"
 keywords = ["zoho"]
