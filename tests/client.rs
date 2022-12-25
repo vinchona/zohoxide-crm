@@ -13,7 +13,7 @@ fn client() {
     assert_eq!(
         client
             .api_domain()
-            .expect("Client should return an API  default value"),
+            .expect("Client should return an API domain default value"),
         DEFAULT_API_DOMAIN
     );
     assert_eq!(
