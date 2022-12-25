@@ -633,40 +633,6 @@ mod tests {
     }
 
     #[test]
-    /// Tests that using no preset access token works.
-    fn no_access_token() {
-        let client = get_client(None, None, Some(String::from("api_domain")));
-
-        assert_eq!(client.access_token(), None);
-    }
-
-    #[test]
-    /// Tests that using no preset API domain works.
-    fn no_domain() {
-        let client = get_client(Some(String::from("access_token")), None, None);
-
-        assert_eq!(client.api_domain(), None);
-    }
-
-    #[test]
-    /// Tests that using a preset access token works.
-    fn preset_access_token() {
-        let access_token = String::from("access_token");
-        let client = get_client(Some(access_token.clone()), None, None);
-
-        assert_eq!(client.access_token(), Some(access_token));
-    }
-
-    #[test]
-    /// Tests that using a preset API domain works.
-    fn preset_api_domain() {
-        let domain = String::from("api_domain");
-        let client = get_client(None, None, Some(domain.clone()));
-
-        assert_eq!(client.api_domain(), Some(domain));
-    }
-
-    #[test]
     /// Tests that the `valid_abbreviated_token()` method works without an access token.
     fn empty_abbreviated_token() {
         let client = get_client(None, None, None);
@@ -682,34 +648,6 @@ mod tests {
 
         assert_ne!(client.access_token().unwrap().len(), 15);
         assert_eq!(client.abbreviated_access_token().unwrap().len(), 15);
-    }
-
-    #[test]
-    fn api_domain() {
-        let api_domain = "https://test.com";
-        let client = get_client(None, None, Some(String::from(api_domain)));
-
-        assert_eq!(api_domain, client.api_domain().unwrap());
-    }
-
-    #[test]
-    fn api_domain_sandbox() {
-        let api_domain = "https://test.com";
-        let sandbox_api_domain = "https://crmsandbox.zoho.com";
-
-        let id = "id";
-        let secret = "secret";
-        let refresh_token = "refresh_token";
-
-        let client = Client::builder()
-            .api_domain(Some(String::from(api_domain)))
-            .client_id(id)
-            .client_secret(secret)
-            .refresh_token(refresh_token)
-            .sandbox(true)
-            .build();
-
-        assert_eq!(sandbox_api_domain, client.api_domain().unwrap());
     }
 
     #[test]
