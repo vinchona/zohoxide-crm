@@ -562,9 +562,8 @@ pub fn parse_params(
 
 #[cfg(test)]
 mod tests {
-    extern crate mockito;
-
     use super::*;
+
     use mockito::{mock, Matcher, Mock};
     use serde::Deserialize;
     use std::collections::HashMap;
