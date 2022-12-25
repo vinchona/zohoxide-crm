@@ -1,6 +1,6 @@
 mod utils;
 
-use zohoxide_crm::{DEFAULT_API_DOMAIN, DEFAULT_TIMEOUT};
+use zohoxide_crm::{DEFAULT_API_DOMAIN, DEFAULT_OAUTH_DOMAIN, DEFAULT_TIMEOUT};
 
 #[test]
 fn client() {
@@ -15,6 +15,12 @@ fn client() {
             .api_domain()
             .expect("Client should return an API  default value"),
         DEFAULT_API_DOMAIN
+    );
+    assert_eq!(
+        client
+            .oauth_domain()
+            .expect("Client should return an OAuth domain default value"),
+        DEFAULT_OAUTH_DOMAIN
     );
     assert_eq!(client.timeout(), DEFAULT_TIMEOUT);
     assert_eq!(client.sandbox(), bool::default());
