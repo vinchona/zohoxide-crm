@@ -8,7 +8,9 @@ use typed_builder::TypedBuilder;
 
 /// Default network timeout for API requests.
 pub const DEFAULT_TIMEOUT: u64 = 30;
+/// Default OAuth domain for client token
 pub const DEFAULT_OAUTH_DOMAIN: &str = "https://accounts.zoho.com";
+/// Defaut API domain for requests;
 pub const DEFAULT_API_DOMAIN: &str = "https://www.zohoapis.com";
 
 /// Handles making requests to v2 of the Zoho CRM API.
