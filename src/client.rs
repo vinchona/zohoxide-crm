@@ -106,6 +106,11 @@ impl Client {
         }
     }
 
+    /// Get the OAuth domain URL.
+    pub fn oauth_domain(&self) -> Option<String> {
+        self.oauth_domain.clone()
+    }
+
     /// Get an abbreviated version of the access token. This is a (slightly) safer version
     /// of the access token should you need to print it out.
     ///
