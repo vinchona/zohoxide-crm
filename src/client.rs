@@ -633,14 +633,6 @@ mod tests {
     }
 
     #[test]
-    /// Tests that the `valid_abbreviated_token()` method works without an access token.
-    fn empty_abbreviated_token() {
-        let client = get_client(None, None, None);
-
-        assert_eq!(client.abbreviated_access_token(), None);
-    }
-
-    #[test]
     /// Tests that the `valid_abbreviated_token()` method works with an access token.
     fn valid_abbreviated_token() {
         let access_token = String::from("12345678901234567890");

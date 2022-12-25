@@ -106,3 +106,9 @@ fn client_sandbox_changes_api() {
     assert_eq!(client.sandbox(), optional_sandbox);
     utils::teardown();
 }
+
+#[test]
+/// Tests that the `abbreviated_access_token()` method works without an access token.
+fn empty_abbreviated_token() {
+    assert!(utils::client().abbreviated_access_token().is_none());
+}
