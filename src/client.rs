@@ -7,9 +7,9 @@ use std::time::Duration;
 use typed_builder::TypedBuilder;
 
 /// Default network timeout for API requests.
-const DEFAULT_TIMEOUT: u64 = 30;
-const DEFAULT_OAUTH_DOMAIN: &str = "https://accounts.zoho.com";
-const DEFAULT_API_DOMAIN: &str = "https://www.zohoapis.com";
+pub const DEFAULT_TIMEOUT: u64 = 30;
+pub const DEFAULT_OAUTH_DOMAIN: &str = "https://accounts.zoho.com";
+pub const DEFAULT_API_DOMAIN: &str = "https://www.zohoapis.com";
 
 /// Handles making requests to v2 of the Zoho CRM API.
 ///
