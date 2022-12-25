@@ -633,24 +633,6 @@ mod tests {
     }
 
     #[test]
-    /// Tests that a valid token is set after calling the `Client` `get_new_token()` method.
-    fn get_new_token_success() {
-        let access_token = "9999.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
-        let api_domain = "https://www.zohoapis.com";
-        let body = format!("{{\"access_token\":\"{}\",\"expires_in_sec\":3600,\"api_domain\":\"{}\",\"token_type\":\"Bearer\",\"expires_in\":3600000}}", access_token, api_domain);
-        let mocker = get_mocker("POST", Matcher::Any, Some(&body));
-        let mut client = get_client(None, None, None);
-
-        match client.get_new_token() {
-            Ok(e) => println!("Good: {:#?}", e),
-            Err(error) => println!("Bad: {:#?}", error),
-        }
-
-        mocker.assert();
-        assert_eq!(client.access_token(), Some(String::from(access_token)));
-    }
-
-    #[test]
     /// Tests that a valid API domain is set after calling the `Client` `get_new_token()` method.
     fn get_new_api_domain_success() {
         let access_token = "9999.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";

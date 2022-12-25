@@ -5,7 +5,6 @@ use zohoxide_crm::{DEFAULT_API_DOMAIN, DEFAULT_OAUTH_DOMAIN, DEFAULT_TIMEOUT};
 #[test]
 /// Tests client with required values
 fn client_required_and_default_values() {
-    utils::setup();
     let client = utils::client().build();
 
     assert_eq!(client.id(), utils::TEST_CLIENT_ID);
@@ -26,13 +25,11 @@ fn client_required_and_default_values() {
     );
     assert_eq!(client.timeout(), DEFAULT_TIMEOUT);
     assert_eq!(client.sandbox(), bool::default());
-    utils::teardown();
 }
 
 #[test]
 /// Tests client optional values but sandbox
 fn client_optional_values() {
-    utils::setup();
     let optional_access_token = Some(String::from("access_token"));
     let optional_api_domain = Some(String::from("api_domain"));
     let optional_oauth_domain = Some(String::from("oauth_domain"));
@@ -53,14 +50,11 @@ fn client_optional_values() {
     assert_eq!(client.oauth_domain(), optional_oauth_domain);
     assert_eq!(client.timeout(), optional_timeout);
     assert_eq!(client.sandbox(), bool::default());
-
-    utils::teardown();
 }
 
 #[test]
 /// Tests client sandbox optional value
 fn client_sandbox_changes_api() {
-    utils::setup();
     let optional_sandbox = true;
     let client = utils::client().sandbox(optional_sandbox).build();
 
@@ -82,7 +76,6 @@ fn client_sandbox_changes_api() {
     );
     assert_eq!(client.timeout(), DEFAULT_TIMEOUT);
     assert_eq!(client.sandbox(), optional_sandbox);
-    utils::teardown();
 }
 
 #[test]
@@ -97,4 +90,19 @@ fn valid_abbreviated_token() {
     let access_token = String::from("12345678901234567890");
     let client = utils::client().access_token(access_token).build();
     assert!(client.abbreviated_access_token().unwrap().len() < client.access_token().unwrap().len())
+}
+
+#[test]
+/// Tests that a valid token is set after calling the `Client` `get_new_token()` method.
+fn new_token_success() {
+    let setup = utils::setup("POST", Some(&utils::token_body_response()));
+    let mut client = utils::client().oauth_domain(mockito::server_url()).build();
+
+    match client.get_new_token() {
+        Ok(e) => println!("Good: {:#?}", e),
+        Err(error) => println!("Bad: {:#?}", error),
+    }
+
+    assert!(client.access_token().is_some());
+    utils::teardown(setup);
 }
