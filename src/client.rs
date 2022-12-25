@@ -633,16 +633,6 @@ mod tests {
     }
 
     #[test]
-    /// Tests that the `valid_abbreviated_token()` method works with an access token.
-    fn valid_abbreviated_token() {
-        let access_token = String::from("12345678901234567890");
-        let client = get_client(Some(access_token), None, None);
-
-        assert_ne!(client.access_token().unwrap().len(), 15);
-        assert_eq!(client.abbreviated_access_token().unwrap().len(), 15);
-    }
-
-    #[test]
     /// Tests that a valid token is set after calling the `Client` `get_new_token()` method.
     fn get_new_token_success() {
         let access_token = "9999.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";

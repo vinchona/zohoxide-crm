@@ -110,5 +110,13 @@ fn client_sandbox_changes_api() {
 #[test]
 /// Tests that the `abbreviated_access_token()` method works without an access token.
 fn empty_abbreviated_token() {
-    assert!(utils::client().abbreviated_access_token().is_none());
+    assert!(utils::client().build().abbreviated_access_token().is_none());
+}
+
+#[test]
+/// Tests that the `abbreviated_access_token()` method works with an access token.
+fn valid_abbreviated_token() {
+    let access_token = String::from("12345678901234567890");
+    let client = utils::client().access_token(access_token).build();
+    assert!(client.abbreviated_access_token().unwrap().len() < client.access_token().unwrap().len())
 }
