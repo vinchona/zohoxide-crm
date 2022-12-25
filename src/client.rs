@@ -1096,28 +1096,4 @@ mod tests {
             }
         }
     }
-
-    #[test]
-    fn test_builder_default_value() {
-        let client_id = "client id";
-        let client_secret = "client secret";
-        let refresh_token = "refresh token";
-        assert!(
-            Client::builder()
-                .client_id(client_id)
-                .client_secret(client_secret)
-                .refresh_token(refresh_token)
-                .build()
-                == Client {
-                    client_id: client_id.into(),
-                    client_secret: client_secret.into(),
-                    refresh_token: refresh_token.into(),
-                    access_token: None,
-                    oauth_domain: Some(String::from(DEFAULT_OAUTH_DOMAIN)),
-                    api_domain: Some(String::from(DEFAULT_API_DOMAIN)),
-                    sandbox: false,
-                    timeout: DEFAULT_TIMEOUT,
-                }
-        );
-    }
 }
