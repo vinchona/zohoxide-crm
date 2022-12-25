@@ -1,5 +1,3 @@
-extern crate serde;
-
 use serde::Deserialize;
 
 /// Wrapper around a token sent back from the Zoho service.
