@@ -22,13 +22,13 @@ fn client_required_and_default_values() {
     assert_eq!(
         client
             .api_domain()
-            .expect("Client should return an API domain default value."),
+            .expect("Client should return the default API domain value."),
         DEFAULT_API_DOMAIN
     );
     assert_eq!(
         client
             .oauth_domain()
-            .expect("Client should return an OAuth domain default value."),
+            .expect("Client should return the default OAuth domain value."),
         DEFAULT_OAUTH_DOMAIN
     );
     assert_eq!(client.timeout(), DEFAULT_TIMEOUT);
@@ -93,13 +93,13 @@ fn client_sandbox_changes_api() {
     assert_ne!(
         client
             .api_domain()
-            .expect("Client should return an API domain value which is not the default one."),
+            .expect("Client should NOT return the default API domain value."),
         DEFAULT_API_DOMAIN
     );
     assert_eq!(
         client
             .oauth_domain()
-            .expect("Client should return an OAuth domain default value."),
+            .expect("Client should return the default OAuth domain value."),
         DEFAULT_OAUTH_DOMAIN
     );
     assert_eq!(client.timeout(), DEFAULT_TIMEOUT);
