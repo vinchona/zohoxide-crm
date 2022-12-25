@@ -67,17 +67,17 @@ pub struct Client {
 }
 
 impl Client {
-    /// Get client id
+    /// Get client id.
     pub fn id(&self) -> String {
         self.client_id.clone()
     }
 
-    /// Get client secret
+    /// Get client secret.
     pub fn secret(&self) -> String {
         self.client_secret.clone()
     }
 
-    /// Get client refresh_token
+    /// Get client refresh_token.
     pub fn refresh_token(&self) -> String {
         self.refresh_token.clone()
     }
