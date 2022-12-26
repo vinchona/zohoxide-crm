@@ -93,7 +93,7 @@ fn valid_abbreviated_token() {
 }
 
 #[test]
-/// Tests that a valid token and api domain is set after calling the `Client` `get_new_token()` method.
+/// Tests that a valid token and api domain is set after calling the `Client` `new_token()` method.
 fn new_token_success() {
     let setup = utils::setup("POST", Some(&utils::oauth_body_success_response()));
     let mut client = utils::client()
@@ -105,7 +105,7 @@ fn new_token_success() {
     assert!(client.access_token().is_none());
     assert!(client.api_domain().is_none());
 
-    if let Err(error) = client.get_new_token() {
+    if let Err(error) = client.new_token() {
         panic!("Bad: {:#?}", error);
     }
 
@@ -115,7 +115,7 @@ fn new_token_success() {
 }
 
 #[test]
-/// Tests that a valid token and api domain is set after calling the `Client` `get_new_token()` method.
+/// Tests that a valid token and api domain is set after calling the `Client` `new_token()` method.
 fn new_token_error() {
     let error_message = "invalid_token";
     let setup = utils::setup(
@@ -131,7 +131,7 @@ fn new_token_error() {
     assert!(client.access_token().is_none());
     assert!(client.api_domain().is_none());
 
-    match client.get_new_token() {
+    match client.new_token() {
         Ok(_) => panic!("Error was not thrown"),
         Err(error) => {
             assert_eq!(error_message.to_string(), error.to_string());

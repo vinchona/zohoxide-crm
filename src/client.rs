@@ -168,7 +168,7 @@ impl Client {
     /// The access token is saved to the [`Client`](struct.Client), so you don't
     /// need to retrieve the token and set it in different steps. But a copy
     /// of it is returned by this method.
-    pub fn get_new_token(&mut self) -> Result<TokenRecord, ClientError> {
+    pub fn new_token(&mut self) -> Result<TokenRecord, ClientError> {
         let url = format!(
             "{}/oauth/v2/token?grant_type=refresh_token&client_id={}&client_secret={}&refresh_token={}",
             self.get_oauth_domain(),
@@ -239,7 +239,7 @@ impl Client {
         id: &str,
     ) -> Result<response::ApiGetResponse<T>, ClientError> {
         if self.access_token.is_none() {
-            self.get_new_token()?;
+            self.new_token()?;
         }
 
         // we are guaranteed a token when we reach this line
@@ -337,7 +337,7 @@ impl Client {
         params: Option<String>,
     ) -> Result<response::ApiGetManyResponse<T>, ClientError> {
         if self.access_token.is_none() {
-            self.get_new_token()?;
+            self.new_token()?;
         }
 
         // we are guaranteed a token when we reach this line
@@ -420,7 +420,7 @@ impl Client {
         T: serde::ser::Serialize,
     {
         if self.access_token.is_none() {
-            self.get_new_token()?;
+            self.new_token()?;
         }
 
         // we are guaranteed a token when we reach this line
@@ -506,7 +506,7 @@ impl Client {
         T: serde::ser::Serialize,
     {
         if self.access_token.is_none() {
-            self.get_new_token()?;
+            self.new_token()?;
         }
 
         // we are guaranteed a token when we reach this line
