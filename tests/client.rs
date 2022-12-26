@@ -99,14 +99,14 @@ fn new_token_success() {
     let mut client = utils::client()
         .oauth_domain(mockito::server_url())
         .api_domain(None)
+        .access_token(None)
         .build();
 
     assert!(client.access_token().is_none());
     assert!(client.api_domain().is_none());
 
-    match client.get_new_token() {
-        Ok(e) => println!("Good: {:#?}", e),
-        Err(error) => println!("Bad: {:#?}", error),
+    if let Err(error) = client.get_new_token() {
+        panic!("Bad: {:#?}", error);
     }
 
     assert!(client.api_domain().is_some());
