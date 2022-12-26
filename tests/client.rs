@@ -95,7 +95,7 @@ fn valid_abbreviated_token() {
 #[test]
 /// Tests that a valid token and api domain is set after calling the `Client` `get_new_token()` method.
 fn new_token_success() {
-    let setup = utils::setup("POST", Some(&utils::token_body_response()));
+    let setup = utils::setup("POST", Some(&utils::oauth_body_success_response()));
     let mut client = utils::client()
         .oauth_domain(mockito::server_url())
         .api_domain(None)
@@ -111,5 +111,34 @@ fn new_token_success() {
 
     assert!(client.api_domain().is_some());
     assert!(client.access_token().is_some());
+    utils::teardown(setup);
+}
+
+#[test]
+/// Tests that a valid token and api domain is set after calling the `Client` `get_new_token()` method.
+fn new_token_error() {
+    let error_message = "invalid_token";
+    let setup = utils::setup(
+        "POST",
+        Some(&utils::oauth_body_error_response(error_message)),
+    );
+    let mut client = utils::client()
+        .oauth_domain(mockito::server_url())
+        .api_domain(None)
+        .access_token(None)
+        .build();
+
+    assert!(client.access_token().is_none());
+    assert!(client.api_domain().is_none());
+
+    match client.get_new_token() {
+        Ok(_) => panic!("Error was not thrown"),
+        Err(error) => {
+            assert_eq!(error_message.to_string(), error.to_string());
+        }
+    }
+
+    assert!(client.api_domain().is_none());
+    assert!(client.access_token().is_none());
     utils::teardown(setup);
 }

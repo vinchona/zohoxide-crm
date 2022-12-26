@@ -633,25 +633,6 @@ mod tests {
     }
 
     #[test]
-    /// Tests that an error is return after calling the `Client` `get_new_token()` method with an
-    /// invalid refresh token.
-    fn get_new_token_invalid_token() {
-        let error_message = "invalid_token";
-        let body = format!(r#"{{"error":"{}"}}"#, error_message);
-        let mocker = get_mocker("POST", Matcher::Any, Some(&body));
-        let mut client = get_client(None, None, None);
-
-        match client.get_new_token() {
-            Ok(_) => panic!("Error was not thrown"),
-            Err(error) => {
-                assert_eq!(error_message.to_string(), error.to_string());
-            }
-        }
-
-        mocker.assert();
-    }
-
-    #[test]
     /// Tests that a `TokenRecord` with a valid access token is returned from the `Client`
     /// `get_new_token()` method.
     fn return_new_token_success() {

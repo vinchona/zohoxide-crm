@@ -6,12 +6,17 @@ pub const TEST_CLIENT_SECRET: &str = "TEST_CLIENT_SECRET";
 pub const TEST_REFRESH_TOKEN: &str = "TEST_REFRESH_TOKEN";
 const TEST_ACCESS_TOKEN: &str = "TEST_ACCESS_TOKEN";
 
-/// Mocked Zoho's token body response
-pub fn token_body_response() -> String {
+/// Mocked Zoho's OAuth success body response
+pub fn oauth_body_success_response() -> String {
     format!(
         r#"{{"access_token":"{}","expires_in_sec":3600,"api_domain":"{}","token_type":"Bearer","expires_in":3600000}}"#,
         TEST_ACCESS_TOKEN, DEFAULT_API_DOMAIN
     )
+}
+
+/// Mocked Zoho's OAuth error body response
+pub fn oauth_body_error_response(error_message: &str) -> String {
+    format!(r#"{{"error":"{}"}}"#, error_message)
 }
 
 /// Setup a mocker to handle request
