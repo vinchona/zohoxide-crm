@@ -93,16 +93,23 @@ fn valid_abbreviated_token() {
 }
 
 #[test]
-/// Tests that a valid token is set after calling the `Client` `get_new_token()` method.
+/// Tests that a valid token and api domain is set after calling the `Client` `get_new_token()` method.
 fn new_token_success() {
     let setup = utils::setup("POST", Some(&utils::token_body_response()));
-    let mut client = utils::client().oauth_domain(mockito::server_url()).build();
+    let mut client = utils::client()
+        .oauth_domain(mockito::server_url())
+        .api_domain(None)
+        .build();
+
+    assert!(client.access_token().is_none());
+    assert!(client.api_domain().is_none());
 
     match client.get_new_token() {
         Ok(e) => println!("Good: {:#?}", e),
         Err(error) => println!("Bad: {:#?}", error),
     }
 
+    assert!(client.api_domain().is_some());
     assert!(client.access_token().is_some());
     utils::teardown(setup);
 }
