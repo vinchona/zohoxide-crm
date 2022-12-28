@@ -193,7 +193,7 @@ impl Client {
 
         match &self.access_token {
             Some(_) => Ok(api_response),
-            None => Err(ClientError::from("No token received")),
+            None => Err(ClientError::EmptyToken),
         }
     }
 

@@ -13,6 +13,10 @@ pub enum ClientError {
     #[error("{0}")]
     UnexpectedResponseType(String),
 
+    /// Error return when no token was received from Zoho response
+    #[error("Token is missing")]
+    EmptyToken,
+
     /// Error return when a response from the API is empty
     #[error("Empty response")]
     EmptyResponse,
@@ -31,12 +35,6 @@ impl From<serde_json::Error> for ClientError {
 impl From<serde_urlencoded::ser::Error> for ClientError {
     fn from(err: serde_urlencoded::ser::Error) -> Self {
         ClientError::General(err.to_string())
-    }
-}
-
-impl From<&str> for ClientError {
-    fn from(err: &str) -> ClientError {
-        ClientError::General(String::from(err))
     }
 }
 
