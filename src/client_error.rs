@@ -17,8 +17,8 @@ pub enum ClientError {
     #[error("Token is missing")]
     EmptyToken,
 
-    /// Error return when a response from the API is empty
-    #[error("Empty response")]
+    /// Error return when a response from Zoho API is empty
+    #[error("Zoho response is missing")]
     EmptyResponse,
 
     /// Error returned from most API requests.
