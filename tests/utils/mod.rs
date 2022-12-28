@@ -4,13 +4,13 @@ use zohoxide_crm::{Client, ClientBuilder, DEFAULT_API_DOMAIN};
 pub const TEST_CLIENT_ID: &str = "TEST_CLIENT_ID";
 pub const TEST_CLIENT_SECRET: &str = "TEST_CLIENT_SECRET";
 pub const TEST_REFRESH_TOKEN: &str = "TEST_REFRESH_TOKEN";
-const TEST_ACCESS_TOKEN: &str = "TEST_ACCESS_TOKEN";
+pub const TEST_ACCESS_TOKEN: &str = "TEST_ACCESS_TOKEN";
 
 /// Mocked Zoho's OAuth success body response
-pub fn oauth_body_success_response() -> String {
+pub fn oauth_body_success_response(access_token: &str) -> String {
     format!(
         r#"{{"access_token":"{}","expires_in_sec":3600,"api_domain":"{}","token_type":"Bearer","expires_in":3600000}}"#,
-        TEST_ACCESS_TOKEN, DEFAULT_API_DOMAIN
+        access_token, DEFAULT_API_DOMAIN
     )
 }
 

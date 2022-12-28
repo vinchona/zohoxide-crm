@@ -1,5 +1,6 @@
 mod utils;
 
+use crate::utils::TEST_ACCESS_TOKEN;
 use zohoxide_crm::{DEFAULT_API_DOMAIN, DEFAULT_OAUTH_DOMAIN, DEFAULT_TIMEOUT};
 
 #[test]
@@ -93,9 +94,12 @@ fn valid_abbreviated_token() {
 }
 
 #[test]
-/// Tests that a valid token and api domain is set after calling the `Client` `new_token()` method.
+/// Tests that a valid [`access_token`](struct.Client.html#method.access_token) and [`api_domai`](struct.Client.html#method.api_domain) is set when [`new_token`](struct.Client.html#method.new_token) succeeds.
 fn new_token_success() {
-    let setup = utils::setup("POST", Some(&utils::oauth_body_success_response()));
+    let setup = utils::setup(
+        "POST",
+        Some(&utils::oauth_body_success_response(TEST_ACCESS_TOKEN)),
+    );
     let mut client = utils::client()
         .oauth_domain(mockito::server_url())
         .api_domain(None)
@@ -105,18 +109,20 @@ fn new_token_success() {
     assert!(client.access_token().is_none());
     assert!(client.api_domain().is_none());
 
-    if let Err(error) = client.new_token() {
-        panic!("Bad: {:#?}", error);
+    match client.new_token() {
+        Ok(token_record) => {
+            assert_eq!(token_record.access_token.unwrap(), "TEST_ACCESS_TOKEN");
+            assert!(client.api_domain().is_some());
+        }
+        Err(error) => panic!("Bad: {:#?}", error),
     }
 
-    assert!(client.api_domain().is_some());
-    assert!(client.access_token().is_some());
     utils::teardown(setup);
 }
 
 #[test]
-/// Tests that a valid token and api domain is set after calling the `Client` `new_token()` method.
-fn new_token_error() {
+/// Tests that [`new_token`](struct.Client.html#method.new_token) return [`ClientError::General`](enum.ClientError.html#variant.General) and set None to [`access_token`](struct.Client.html#method.access_token) and [`api_domain`](struct.Client.html#method.api_domain).
+fn new_token_error_with_invalid_token() {
     let error_message = "invalid_token";
     let setup = utils::setup(
         "POST",
