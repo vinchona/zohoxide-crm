@@ -317,7 +317,7 @@ impl Client {
     /// # let client_secret = "";
     /// # let refresh_token = "";
     ///
-    /// # let mut client = Client::builder()
+    /// let mut client = Client::builder()
     /// .client_id(client_id)
     /// .client_secret(client_secret)
     /// .refresh_token(refresh_token)
