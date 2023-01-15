@@ -34,3 +34,7 @@ repos:
         stages: [commit]
       - id: cargo-check
         stages: [commit]
+  - repo: https://github.com/crate-ci/typos
+    rev: v1.13.7
+    hooks:
+      - id: typos
