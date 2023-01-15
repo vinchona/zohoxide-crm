@@ -7,9 +7,11 @@ use std::time::Duration;
 use typed_builder::TypedBuilder;
 
 /// Default network timeout for API requests.
-const DEFAULT_TIMEOUT: u64 = 30;
-const DEFAULT_OAUTH_DOMAIN: &str = "https://accounts.zoho.com";
-const DEFAULT_API_DOMAIN: &str = "https://www.zohoapis.com";
+pub const DEFAULT_TIMEOUT: u64 = 30;
+/// Default OAuth domain for client token.
+pub const DEFAULT_OAUTH_DOMAIN: &str = "https://accounts.zoho.com";
+/// Default API domain for requests.
+pub const DEFAULT_API_DOMAIN: &str = "https://www.zohoapis.com";
 
 /// Handles making requests to v2 of the Zoho CRM API.
 ///
@@ -65,6 +67,21 @@ pub struct Client {
 }
 
 impl Client {
+    /// Get client id.
+    pub fn id(&self) -> String {
+        self.client_id.clone()
+    }
+
+    /// Get client secret.
+    pub fn secret(&self) -> String {
+        self.client_secret.clone()
+    }
+
+    /// Get client refresh_token.
+    pub fn refresh_token(&self) -> String {
+        self.refresh_token.clone()
+    }
+
     /// Get the sandbox configuration.
     pub fn sandbox(&self) -> bool {
         self.sandbox
@@ -87,6 +104,11 @@ impl Client {
         } else {
             self.api_domain.clone()
         }
+    }
+
+    /// Get the OAuth domain URL.
+    pub fn oauth_domain(&self) -> Option<String> {
+        self.oauth_domain.clone()
     }
 
     /// Get an abbreviated version of the access token. This is a (slightly) safer version
@@ -146,7 +168,7 @@ impl Client {
     /// The access token is saved to the [`Client`](struct.Client), so you don't
     /// need to retrieve the token and set it in different steps. But a copy
     /// of it is returned by this method.
-    pub fn get_new_token(&mut self) -> Result<TokenRecord, ClientError> {
+    pub fn new_token(&mut self) -> Result<TokenRecord, ClientError> {
         let url = format!(
             "{}/oauth/v2/token?grant_type=refresh_token&client_id={}&client_secret={}&refresh_token={}",
             self.get_oauth_domain(),
@@ -171,7 +193,7 @@ impl Client {
 
         match &self.access_token {
             Some(_) => Ok(api_response),
-            None => Err(ClientError::from("No token received")),
+            None => Err(ClientError::EmptyToken),
         }
     }
 
@@ -217,7 +239,7 @@ impl Client {
         id: &str,
     ) -> Result<response::ApiGetResponse<T>, ClientError> {
         if self.access_token.is_none() {
-            self.get_new_token()?;
+            self.new_token()?;
         }
 
         // we are guaranteed a token when we reach this line
@@ -295,7 +317,7 @@ impl Client {
     /// # let client_secret = "";
     /// # let refresh_token = "";
     ///
-    /// # let mut client = Client::builder()
+    /// let mut client = Client::builder()
     /// .client_id(client_id)
     /// .client_secret(client_secret)
     /// .refresh_token(refresh_token)
@@ -315,7 +337,7 @@ impl Client {
         params: Option<String>,
     ) -> Result<response::ApiGetManyResponse<T>, ClientError> {
         if self.access_token.is_none() {
-            self.get_new_token()?;
+            self.new_token()?;
         }
 
         // we are guaranteed a token when we reach this line
@@ -398,7 +420,7 @@ impl Client {
         T: serde::ser::Serialize,
     {
         if self.access_token.is_none() {
-            self.get_new_token()?;
+            self.new_token()?;
         }
 
         // we are guaranteed a token when we reach this line
@@ -484,7 +506,7 @@ impl Client {
         T: serde::ser::Serialize,
     {
         if self.access_token.is_none() {
-            self.get_new_token()?;
+            self.new_token()?;
         }
 
         // we are guaranteed a token when we reach this line
@@ -562,9 +584,8 @@ pub fn parse_params(
 
 #[cfg(test)]
 mod tests {
-    extern crate mockito;
-
     use super::*;
+
     use mockito::{mock, Matcher, Mock};
     use serde::Deserialize;
     use std::collections::HashMap;
@@ -609,179 +630,6 @@ mod tests {
         mocker = mocker.create();
 
         mocker
-    }
-
-    #[test]
-    /// Tests that using no preset access token works.
-    fn no_access_token() {
-        let client = get_client(None, None, Some(String::from("api_domain")));
-
-        assert_eq!(client.access_token(), None);
-    }
-
-    #[test]
-    /// Tests that using no preset API domain works.
-    fn no_domain() {
-        let client = get_client(Some(String::from("access_token")), None, None);
-
-        assert_eq!(client.api_domain(), None);
-    }
-
-    #[test]
-    /// Tests that using a preset access token works.
-    fn preset_access_token() {
-        let access_token = String::from("access_token");
-        let client = get_client(Some(access_token.clone()), None, None);
-
-        assert_eq!(client.access_token(), Some(access_token));
-    }
-
-    #[test]
-    /// Tests that using a preset API domain works.
-    fn preset_api_domain() {
-        let domain = String::from("api_domain");
-        let client = get_client(None, None, Some(domain.clone()));
-
-        assert_eq!(client.api_domain(), Some(domain));
-    }
-
-    #[test]
-    /// Tests that the `valid_abbreviated_token()` method works without an access token.
-    fn empty_abbreviated_token() {
-        let client = get_client(None, None, None);
-
-        assert_eq!(client.abbreviated_access_token(), None);
-    }
-
-    #[test]
-    /// Tests that the `valid_abbreviated_token()` method works with an access token.
-    fn valid_abbreviated_token() {
-        let access_token = String::from("12345678901234567890");
-        let client = get_client(Some(access_token), None, None);
-
-        assert_ne!(client.access_token().unwrap().len(), 15);
-        assert_eq!(client.abbreviated_access_token().unwrap().len(), 15);
-    }
-
-    #[test]
-    fn api_domain() {
-        let api_domain = "https://test.com";
-        let client = get_client(None, None, Some(String::from(api_domain)));
-
-        assert_eq!(api_domain, client.api_domain().unwrap());
-    }
-
-    #[test]
-    fn api_domain_sandbox() {
-        let api_domain = "https://test.com";
-        let sandbox_api_domain = "https://crmsandbox.zoho.com";
-
-        let id = "id";
-        let secret = "secret";
-        let refresh_token = "refresh_token";
-
-        let client = Client::builder()
-            .api_domain(Some(String::from(api_domain)))
-            .client_id(id)
-            .client_secret(secret)
-            .refresh_token(refresh_token)
-            .sandbox(true)
-            .build();
-
-        assert_eq!(sandbox_api_domain, client.api_domain().unwrap());
-    }
-
-    #[test]
-    /// Tests that a valid token is set after calling the `Client` `get_new_token()` method.
-    fn get_new_token_success() {
-        let access_token = "9999.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
-        let api_domain = "https://www.zohoapis.com";
-        let body = format!("{{\"access_token\":\"{}\",\"expires_in_sec\":3600,\"api_domain\":\"{}\",\"token_type\":\"Bearer\",\"expires_in\":3600000}}", access_token, api_domain);
-        let mocker = get_mocker("POST", Matcher::Any, Some(&body));
-        let mut client = get_client(None, None, None);
-
-        match client.get_new_token() {
-            Ok(e) => println!("Good: {:#?}", e),
-            Err(error) => println!("Bad: {:#?}", error),
-        }
-
-        mocker.assert();
-        assert_eq!(client.access_token(), Some(String::from(access_token)));
-    }
-
-    #[test]
-    /// Tests that a valid API domain is set after calling the `Client` `get_new_token()` method.
-    fn get_new_api_domain_success() {
-        let access_token = "9999.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
-        let api_domain = "https://www.zohoapis.com";
-        let body = format!(
-            r#"{{"access_token":"{}","expires_in_sec":3600,"api_domain":"{}","token_type":"Bearer","expires_in":3600000}}"#,
-            access_token, api_domain
-        );
-        let mocker = get_mocker("POST", Matcher::Any, Some(&body));
-        let mut client = get_client(None, None, None);
-
-        client.get_new_token().unwrap();
-
-        mocker.assert();
-        assert_eq!(client.api_domain(), Some(String::from(api_domain)));
-    }
-
-    #[test]
-    /// Tests that an error is return after calling the `Client` `get_new_token()` method with an
-    /// invalid refresh token.
-    fn get_new_token_invalid_token() {
-        let error_message = "invalid_token";
-        let body = format!(r#"{{"error":"{}"}}"#, error_message);
-        let mocker = get_mocker("POST", Matcher::Any, Some(&body));
-        let mut client = get_client(None, None, None);
-
-        match client.get_new_token() {
-            Ok(_) => panic!("Error was not thrown"),
-            Err(error) => {
-                assert_eq!(error_message.to_string(), error.to_string());
-            }
-        }
-
-        mocker.assert();
-    }
-
-    #[test]
-    /// Tests that a `TokenRecord` with a valid access token is returned from the `Client`
-    /// `get_new_token()` method.
-    fn return_new_token_success() {
-        let access_token = "9999.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
-        let api_domain = "https://www.zohoapis.com";
-        let body = format!(
-            r#"{{"access_token":"{}","expires_in_sec":3600,"api_domain":"{}","token_type":"Bearer","expires_in":3600000}}"#,
-            access_token, api_domain
-        );
-        let mocker = get_mocker("POST", Matcher::Any, Some(&body));
-        let mut client = get_client(None, None, None);
-
-        let token = client.get_new_token().unwrap();
-
-        mocker.assert();
-        assert_eq!(token.access_token, Some(String::from(access_token)));
-    }
-
-    #[test]
-    /// Tests that a `TokenRecord` with a valid API domain is returned from the `Client`
-    /// `get_new_token()` method.
-    fn return_api_domain_success() {
-        let access_token = "9999.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
-        let api_domain = "https://www.zohoapis.com";
-        let body = format!(
-            r#"{{"access_token":"{}","expires_in_sec":3600,"api_domain":"{}","token_type":"Bearer","expires_in":3600000}}"#,
-            access_token, api_domain
-        );
-        let mocker = get_mocker("POST", Matcher::Any, Some(&body));
-        let mut client = get_client(None, None, None);
-
-        let token = client.get_new_token().unwrap();
-
-        mocker.assert();
-        assert_eq!(token.api_domain, Some(String::from(api_domain)));
     }
 
     #[test]
@@ -1074,29 +922,5 @@ mod tests {
                 panic!("Params did not convert properly");
             }
         }
-    }
-
-    #[test]
-    fn test_builder_default_value() {
-        let client_id = "client id";
-        let client_secret = "client secret";
-        let refresh_token = "refresh token";
-        assert!(
-            Client::builder()
-                .client_id(client_id)
-                .client_secret(client_secret)
-                .refresh_token(refresh_token)
-                .build()
-                == Client {
-                    client_id: client_id.into(),
-                    client_secret: client_secret.into(),
-                    refresh_token: refresh_token.into(),
-                    access_token: None,
-                    oauth_domain: Some(String::from(DEFAULT_OAUTH_DOMAIN)),
-                    api_domain: Some(String::from(DEFAULT_API_DOMAIN)),
-                    sandbox: false,
-                    timeout: DEFAULT_TIMEOUT,
-                }
-        );
     }
 }

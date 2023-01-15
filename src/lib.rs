@@ -42,11 +42,6 @@
 //! let account = client.get::<Account>("Accounts", "ZOHO_ID_HERE").unwrap();
 //! ```
 
-extern crate reqwest;
-extern crate serde;
-extern crate serde_json;
-extern crate serde_urlencoded;
-
 mod client;
 mod client_error;
 pub mod response;
@@ -55,5 +50,8 @@ mod token_record;
 pub use client::parse_params;
 pub use client::Client;
 pub use client::ClientBuilder;
+pub use client::DEFAULT_API_DOMAIN;
+pub use client::DEFAULT_OAUTH_DOMAIN;
+pub use client::DEFAULT_TIMEOUT;
 pub use client_error::ClientError;
 pub use token_record::TokenRecord;
