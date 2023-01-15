@@ -65,7 +65,7 @@ pub struct ResponseDataItemDetailsError {
     pub index: Option<String>,
 }
 
-/// Response details object returned when a record was succesfully insert or updated.
+/// Response details object returned when a record was successfully insert or updated.
 ///
 /// There are some other fields, shown [here](https://www.zoho.com/crm/developer/docs/api/insert-records.html),
 /// but they are ignored for now, for simplicity's sake.
