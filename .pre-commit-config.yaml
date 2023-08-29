@@ -1,11 +1,12 @@
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.3.0
+    rev: v4.4.0
     hooks:
       - id: check-executables-have-shebangs
         stages: [commit]
       - id: check-yaml
         stages: [commit]
+        args: ["--unsafe"]
       - id: check-json
         stages: [commit]
       - id: check-toml
@@ -21,10 +22,18 @@ repos:
       - id: trailing-whitespace
         stages: [commit]
   - repo: https://github.com/crate-ci/committed
-    rev: v1.0.5
+    rev: v1.0.20
     hooks:
-      - id: committed-src
+      - id: committed
         stages: [commit-msg]
+  - repo: https://github.com/crate-ci/committed
+    rev: v1.0.20
+    hooks:
+      - id: committed
+        name: committed on current branch commits
+        stages: [commit]
+        args: [origin/main..HEAD]
+        pass_filenames: false
   - repo: https://github.com/doublify/pre-commit-rust
     rev: v1.0
     hooks:
@@ -35,6 +44,21 @@ repos:
       - id: cargo-check
         stages: [commit]
   - repo: https://github.com/crate-ci/typos
-    rev: v1.13.7
+    rev: v1.16.8
     hooks:
       - id: typos
+        stages: [commit]
+  - repo: local
+    hooks:
+      - id: remove-unicode-non-breaking-spaces
+        name: Remove unicode non-breaking space character U+00A0 aka M-BM-
+        language: system
+        entry: sed -i -e 's/\xc2\xa0/ /g'
+        # directory is equivalent as submodule in pre-commit context
+        exclude_types: [symlink, directory, binary]
+      - id: remove-en-dashes
+        name: Remove the EXTREMELY confusing unicode character U+2013
+        language: system
+        entry: sed -i -e 's/\xe2\x80\x93/-/g'
+        # directory is equivalent as submodule in pre-commit context
+        exclude_types: [symlink, directory, binary]
