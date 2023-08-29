@@ -32,7 +32,7 @@ repos:
       - id: committed
         name: committed on current branch commits
         stages: [commit]
-        args: [origin/main..HEAD]
+        args: [remotes/origin/main..HEAD^1]
         pass_filenames: false
   - repo: https://github.com/doublify/pre-commit-rust
     rev: v1.0
