@@ -155,8 +155,8 @@ impl Client {
             self.refresh_token
         );
 
-        let client = reqwest::Client::new();
-        let mut response = client.post(url.as_str()).send()?;
+        let client = reqwest::blocking::Client::new();
+        let response = client.post(url.as_str()).send()?;
         let raw_response = response.text()?;
 
         // TODO: refactor this with a more idiomatic pattern
@@ -224,11 +224,13 @@ impl Client {
         let token = self.access_token.clone().unwrap();
 
         let timeout = Duration::from_secs(self.timeout);
-        let client = reqwest::Client::builder().timeout(timeout).build()?;
+        let client = reqwest::blocking::Client::builder()
+            .timeout(timeout)
+            .build()?;
 
         let url = format!("{}/crm/v2/{}/{}", self.api_domain().unwrap(), module, id);
 
-        let mut response = client
+        let response = client
             .get(url.as_str())
             .header("Authorization", format!("Zoho-oauthtoken {}", token))
             .send()?;
@@ -323,7 +325,9 @@ impl Client {
         let api_domain = self.api_domain().unwrap();
 
         let timeout = Duration::from_secs(self.timeout);
-        let client = reqwest::Client::builder().timeout(timeout).build()?;
+        let client = reqwest::blocking::Client::builder()
+            .timeout(timeout)
+            .build()?;
 
         let mut url = format!("{}/crm/v2/{}", api_domain, module);
 
@@ -331,7 +335,7 @@ impl Client {
             url = url + &format!("?{}", params.unwrap());
         }
 
-        let mut response = client
+        let response = client
             .get(url.as_str())
             .header("Authorization", String::from("Zoho-oauthtoken ") + &token)
             .send()?;
@@ -405,7 +409,7 @@ impl Client {
         let token = self.access_token().unwrap();
         let api_domain = self.api_domain().unwrap();
 
-        let client = reqwest::Client::builder()
+        let client = reqwest::blocking::Client::builder()
             .timeout(Duration::from_secs(self.timeout))
             .build()?;
 
@@ -415,7 +419,7 @@ impl Client {
         let mut params: HashMap<&str, Vec<T>> = HashMap::new();
         params.insert("data", data);
 
-        let mut response = client
+        let response = client
             .post(url.as_str())
             .header("Authorization", String::from("Zoho-oauthtoken ") + &token)
             .json(&params)
@@ -492,7 +496,9 @@ impl Client {
         let api_domain = self.api_domain().unwrap();
 
         let timeout = Duration::from_secs(self.timeout);
-        let client = reqwest::Client::builder().timeout(timeout).build()?;
+        let client = reqwest::blocking::Client::builder()
+            .timeout(timeout)
+            .build()?;
 
         let url = format!("{}/crm/v2/{}", api_domain, module);
 
@@ -500,7 +506,7 @@ impl Client {
         let mut params: HashMap<&str, Vec<T>> = HashMap::new();
         params.insert("data", data);
 
-        let mut response = client
+        let response = client
             .put(url.as_str())
             .header("Authorization", String::from("Zoho-oauthtoken ") + &token)
             .json(&params)
