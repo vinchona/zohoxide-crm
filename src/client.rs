@@ -126,20 +126,6 @@ impl Client {
 }
 
 impl Client {
-    /// Get the API base path, which changes depending on the current environment.
-    ///
-    /// This is primarily used to allow for HTTP test mocking of API calls.
-    fn get_oauth_domain(&self) -> String {
-        #[cfg(test)]
-        return mockito::server_url();
-
-        #[cfg(not(test))]
-        match &self.oauth_domain {
-            Some(oauth_domain) => oauth_domain.clone(),
-            None => String::from("https://accounts.zoho.com"),
-        }
-    }
-
     /// Get a new access token from Zoho. Guarantees an access token when it returns
     /// an `Result::Ok`.
     ///
@@ -149,7 +135,7 @@ impl Client {
     pub fn get_new_token(&mut self) -> Result<TokenRecord, ClientError> {
         let url = format!(
             "{}/oauth/v2/token?grant_type=refresh_token&client_id={}&client_secret={}&refresh_token={}",
-            self.get_oauth_domain(),
+            self.oauth_domain.as_deref().unwrap(),
             self.client_id,
             self.client_secret,
             self.refresh_token
@@ -571,7 +557,7 @@ mod tests {
     extern crate mockito;
 
     use super::*;
-    use mockito::{mock, Matcher, Mock};
+    use mockito::Matcher;
     use serde::Deserialize;
     use std::collections::HashMap;
 
@@ -598,23 +584,6 @@ mod tests {
             .client_secret(secret)
             .refresh_token(refresh_token)
             .build()
-    }
-
-    /// Get an HTTP mocker.
-    fn get_mocker<T: Into<Matcher>>(method: &str, url: T, body: Option<&str>) -> Mock {
-        let mut mocker = mock(method, url)
-            .with_status(200)
-            .with_header("Content-Type", "application/json;charset=UTF-8");
-
-        if let Some(body) = body {
-            mocker = mocker
-                .with_header("Content-Length", &body.to_string().len().to_string())
-                .with_body(body);
-        }
-
-        mocker = mocker.create();
-
-        mocker
     }
 
     #[test]
@@ -703,15 +672,23 @@ mod tests {
         let access_token = "9999.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
         let api_domain = "https://www.zohoapis.com";
         let body = format!("{{\"access_token\":\"{}\",\"expires_in_sec\":3600,\"api_domain\":\"{}\",\"token_type\":\"Bearer\",\"expires_in\":3600000}}", access_token, api_domain);
-        let mocker = get_mocker("POST", Matcher::Any, Some(&body));
-        let mut client = get_client(None, None, None);
+        let mut server = mockito::Server::new();
+        let mock = server
+            .mock("POST", Matcher::Any)
+            .with_status(200)
+            .with_header("Content-Type", "application/json;charset=UTF-8")
+            .with_header("Content-Length", &body.to_string().len().to_string())
+            .with_body(&body)
+            .create();
+
+        let mut client = get_client(None, Some(server.url()), None);
 
         match client.get_new_token() {
             Ok(e) => println!("Good: {:#?}", e),
             Err(error) => println!("Bad: {:#?}", error),
         }
 
-        mocker.assert();
+        mock.assert();
         assert_eq!(client.access_token(), Some(String::from(access_token)));
     }
 
@@ -724,12 +701,20 @@ mod tests {
             r#"{{"access_token":"{}","expires_in_sec":3600,"api_domain":"{}","token_type":"Bearer","expires_in":3600000}}"#,
             access_token, api_domain
         );
-        let mocker = get_mocker("POST", Matcher::Any, Some(&body));
-        let mut client = get_client(None, None, None);
+        let mut server = mockito::Server::new();
+        let mock = server
+            .mock("POST", Matcher::Any)
+            .with_status(200)
+            .with_header("Content-Type", "application/json;charset=UTF-8")
+            .with_header("Content-Length", &body.to_string().len().to_string())
+            .with_body(&body)
+            .create();
+
+        let mut client = get_client(None, Some(server.url()), None);
 
         client.get_new_token().unwrap();
 
-        mocker.assert();
+        mock.assert();
         assert_eq!(client.api_domain(), Some(String::from(api_domain)));
     }
 
@@ -739,8 +724,15 @@ mod tests {
     fn get_new_token_invalid_token() {
         let error_message = "invalid_token";
         let body = format!(r#"{{"error":"{}"}}"#, error_message);
-        let mocker = get_mocker("POST", Matcher::Any, Some(&body));
-        let mut client = get_client(None, None, None);
+        let mut server = mockito::Server::new();
+        let mock = server
+            .mock("POST", Matcher::Any)
+            .with_status(200)
+            .with_header("Content-Type", "application/json;charset=UTF-8")
+            .with_header("Content-Length", &body.to_string().len().to_string())
+            .with_body(&body)
+            .create();
+        let mut client = get_client(None, Some(server.url()), None);
 
         match client.get_new_token() {
             Ok(_) => panic!("Error was not thrown"),
@@ -749,7 +741,7 @@ mod tests {
             }
         }
 
-        mocker.assert();
+        mock.assert();
     }
 
     #[test]
@@ -762,12 +754,20 @@ mod tests {
             r#"{{"access_token":"{}","expires_in_sec":3600,"api_domain":"{}","token_type":"Bearer","expires_in":3600000}}"#,
             access_token, api_domain
         );
-        let mocker = get_mocker("POST", Matcher::Any, Some(&body));
-        let mut client = get_client(None, None, None);
+        let mut server = mockito::Server::new();
+        let mock = server
+            .mock("POST", Matcher::Any)
+            .with_status(200)
+            .with_header("Content-Type", "application/json;charset=UTF-8")
+            .with_header("Content-Length", &body.to_string().len().to_string())
+            .with_body(&body)
+            .create();
+
+        let mut client = get_client(None, Some(server.url()), None);
 
         let token = client.get_new_token().unwrap();
 
-        mocker.assert();
+        mock.assert();
         assert_eq!(token.access_token, Some(String::from(access_token)));
     }
 
@@ -781,12 +781,20 @@ mod tests {
             r#"{{"access_token":"{}","expires_in_sec":3600,"api_domain":"{}","token_type":"Bearer","expires_in":3600000}}"#,
             access_token, api_domain
         );
-        let mocker = get_mocker("POST", Matcher::Any, Some(&body));
-        let mut client = get_client(None, None, None);
+        let mut server = mockito::Server::new();
+        let mock = server
+            .mock("POST", Matcher::Any)
+            .with_status(200)
+            .with_header("Content-Type", "application/json;charset=UTF-8")
+            .with_header("Content-Length", &body.to_string().len().to_string())
+            .with_body(&body)
+            .create();
+
+        let mut client = get_client(None, Some(server.url()), None);
 
         let token = client.get_new_token().unwrap();
 
-        mocker.assert();
+        mock.assert();
         assert_eq!(token.api_domain, Some(String::from(api_domain)));
     }
 
@@ -794,18 +802,26 @@ mod tests {
     /// Tests that fetching a record via the `get()` method works.
     fn get_success() {
         let access_token = "9999.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
-        let api_domain = mockito::server_url();
+        let mut server = mockito::Server::new();
+        let api_domain = server.url();
         let record_id = "40000000123456789";
         let body = format!(
             r#"{{"data":[{{"id":"{}"}}],"info":{{"more_records":true,"per_page":1,"count":1,"page":1}}}}"#,
             record_id
         );
-        let mocker = get_mocker("GET", Matcher::Any, Some(&body));
+        let mock = server
+            .mock("GET", Matcher::Any)
+            .with_status(200)
+            .with_header("Content-Type", "application/json;charset=UTF-8")
+            .with_header("Content-Length", &body.to_string().len().to_string())
+            .with_body(&body)
+            .create();
+
         let mut client = get_client(Some(String::from(access_token)), None, Some(api_domain));
 
         let response = client.get::<ResponseRecord>("Accounts", record_id).unwrap();
 
-        mocker.assert();
+        mock.assert();
         assert_eq!(response.data.get(0).unwrap().id, record_id);
     }
 
@@ -813,13 +829,21 @@ mod tests {
     /// Tests that an error code returned via the `get()` method returns an error.
     fn get_regular_error() {
         let access_token = "9999.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
-        let api_domain = mockito::server_url();
+        let mut server = mockito::Server::new();
+        let api_domain = server.url();
         let error_code = "INVALID_URL_PATTERN";
         let body = format!(
             r#"{{"code":"{}","details":{{}},"message":"Please check if the URL trying to access is a correct one","status":"error"}}"#,
             error_code
         );
-        let mocker = get_mocker("GET", Matcher::Any, Some(&body));
+        let mock = server
+            .mock("GET", Matcher::Any)
+            .with_status(200)
+            .with_header("Content-Type", "application/json;charset=UTF-8")
+            .with_header("Content-Length", &body.to_string().len().to_string())
+            .with_body(&body)
+            .create();
+
         let mut client = get_client(Some(String::from(access_token)), None, Some(api_domain));
 
         match client.get::<ResponseRecord>("INVALID_MODULE", "00000") {
@@ -830,17 +854,25 @@ mod tests {
             },
         }
 
-        mocker.assert();
+        mock.assert();
     }
 
     #[test]
     /// Tests that a plain error message returned via the `get()` method returns an error.
     fn get_text_error() {
         let access_token = "9999.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
-        let api_domain = mockito::server_url();
+        let mut server = mockito::Server::new();
+        let api_domain = server.url();
         let error_code = "invalid_client";
         let body = error_code.to_string();
-        let mocker = get_mocker("GET", Matcher::Any, Some(&body));
+        let mock = server
+            .mock("GET", Matcher::Any)
+            .with_status(200)
+            .with_header("Content-Type", "application/json;charset=UTF-8")
+            .with_header("Content-Length", &body.to_string().len().to_string())
+            .with_body(&body)
+            .create();
+
         let mut client = get_client(Some(String::from(access_token)), None, Some(api_domain));
 
         match client.get::<ResponseRecord>("INVALID_MODULE", "00000") {
@@ -850,14 +882,15 @@ mod tests {
             }
         }
 
-        mocker.assert();
+        mock.assert();
     }
 
     #[test]
     /// Tests that inserting a record via the `insert()` method works.
     fn insert_many_success() {
         let access_token = "9999.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
-        let api_domain = mockito::server_url();
+        let mut server = mockito::Server::new();
+        let api_domain = server.url();
         let record_id = "40000000123456789";
         let body = format!(
             r#"{{
@@ -884,7 +917,14 @@ mod tests {
         }}"#,
             record_id
         );
-        let mocker = get_mocker("POST", Matcher::Any, Some(&body));
+        let mock = server
+            .mock("POST", Matcher::Any)
+            .with_status(200)
+            .with_header("Content-Type", "application/json;charset=UTF-8")
+            .with_header("Content-Length", &body.to_string().len().to_string())
+            .with_body(&body)
+            .create();
+
         let mut client = get_client(Some(String::from(access_token)), None, Some(api_domain));
 
         let mut record: HashMap<&str, &str> = HashMap::new();
@@ -900,7 +940,7 @@ mod tests {
             response::ResponseDataItemDetails::Success(details) => details,
         };
 
-        mocker.assert();
+        mock.assert();
         assert_eq!(details.id, record_id);
     }
 
@@ -908,7 +948,8 @@ mod tests {
     /// Tests that an error code returned via the `insert()` method returns an error.
     fn insert_regular_error() {
         let access_token = "9999.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
-        let api_domain = mockito::server_url();
+        let mut server = mockito::Server::new();
+        let api_domain = server.url();
         let error_code = "INVALID_MODULE";
         let body = format!(
             r#"{{
@@ -919,7 +960,14 @@ mod tests {
         }}"#,
             error_code
         );
-        let mocker = get_mocker("POST", Matcher::Any, Some(&body));
+        let mock = server
+            .mock("POST", Matcher::Any)
+            .with_status(200)
+            .with_header("Content-Type", "application/json;charset=UTF-8")
+            .with_header("Content-Length", &body.to_string().len().to_string())
+            .with_body(&body)
+            .create();
+
         let mut client = get_client(Some(String::from(access_token)), None, Some(api_domain));
 
         let mut record: HashMap<&str, &str> = HashMap::new();
@@ -933,17 +981,24 @@ mod tests {
             },
         }
 
-        mocker.assert();
+        mock.assert();
     }
 
     #[test]
     /// Tests that a plain error message returned via the `insert()` method returns an error.
     fn insert_many_text_error() {
         let access_token = "9999.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
-        let api_domain = mockito::server_url();
+        let mut server = mockito::Server::new();
+        let api_domain = server.url();
         let error_code = "invalid_client";
         let body = error_code.to_string();
-        let mocker = get_mocker("POST", Matcher::Any, Some(&body));
+        let mock = server
+            .mock("POST", Matcher::Any)
+            .with_status(200)
+            .with_header("Content-Type", "application/json;charset=UTF-8")
+            .with_header("Content-Length", &body.to_string().len().to_string())
+            .with_body(&body)
+            .create();
         let mut client = get_client(Some(String::from(access_token)), None, Some(api_domain));
 
         let mut record: HashMap<&str, &str> = HashMap::new();
@@ -956,14 +1011,15 @@ mod tests {
             }
         }
 
-        mocker.assert();
+        mock.assert();
     }
 
     #[test]
     /// Tests that updating a record via the `update_many()` method works.
     fn update_many_success() {
         let access_token = "9999.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
-        let api_domain = mockito::server_url();
+        let mut server = mockito::Server::new();
+        let api_domain = server.url();
         let record_id = "40000000123456789";
         let body = format!(
             r#"{{
@@ -990,7 +1046,14 @@ mod tests {
         }}"#,
             record_id
         );
-        let mocker = get_mocker("PUT", Matcher::Any, Some(&body));
+        let mock = server
+            .mock("PUT", Matcher::Any)
+            .with_status(200)
+            .with_header("Content-Type", "application/json;charset=UTF-8")
+            .with_header("Content-Length", &body.to_string().len().to_string())
+            .with_body(&body)
+            .create();
+
         let mut client = get_client(Some(String::from(access_token)), None, Some(api_domain));
 
         let mut record: HashMap<&str, &str> = HashMap::new();
@@ -1006,7 +1069,7 @@ mod tests {
             response::ResponseDataItemDetails::Success(details) => details,
         };
 
-        mocker.assert();
+        mock.assert();
         assert_eq!(details.id, record_id);
     }
 
@@ -1014,7 +1077,8 @@ mod tests {
     /// Tests that an error code returned via the `update_many()` method returns an error.
     fn update_regular_error() {
         let access_token = "9999.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
-        let api_domain = mockito::server_url();
+        let mut server = mockito::Server::new();
+        let api_domain = server.url();
         let error_code = "INVALID_MODULE";
         let body = format!(
             r#"{{
@@ -1025,7 +1089,14 @@ mod tests {
         }}"#,
             error_code
         );
-        let mocker = get_mocker("PUT", Matcher::Any, Some(&body));
+        let mock = server
+            .mock("PUT", Matcher::Any)
+            .with_status(200)
+            .with_header("Content-Type", "application/json;charset=UTF-8")
+            .with_header("Content-Length", &body.to_string().len().to_string())
+            .with_body(&body)
+            .create();
+
         let mut client = get_client(Some(String::from(access_token)), None, Some(api_domain));
 
         let mut record: HashMap<&str, &str> = HashMap::new();
@@ -1039,17 +1110,25 @@ mod tests {
             },
         }
 
-        mocker.assert();
+        mock.assert();
     }
 
     #[test]
     /// Tests that a plain error message returned via the `update_many()` method returns an error.
     fn update_many_text_error() {
         let access_token = "9999.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
-        let api_domain = mockito::server_url();
+        let mut server = mockito::Server::new();
+        let api_domain = server.url();
         let error_code = "invalid_client";
         let body = error_code.to_string();
-        let mocker = get_mocker("PUT", Matcher::Any, Some(&body));
+        let mock = server
+            .mock("PUT", Matcher::Any)
+            .with_status(200)
+            .with_header("Content-Type", "application/json;charset=UTF-8")
+            .with_header("Content-Length", &body.to_string().len().to_string())
+            .with_body(&body)
+            .create();
+
         let mut client = get_client(Some(String::from(access_token)), None, Some(api_domain));
 
         let mut record: HashMap<&str, &str> = HashMap::new();
@@ -1062,7 +1141,7 @@ mod tests {
             }
         }
 
-        mocker.assert();
+        mock.assert();
     }
 
     #[test]
