@@ -21,6 +21,7 @@ serde = { version = "1.0", features = ["derive"] }
 ```rust
 use serde::Deserialize;
 use zohoxide_crm::Client;
+use zohoxide_crm::DataCenter;
 
 let client_id = "YOUR_CLIENT_ID";
 let client_secret = "YOUR_CLIENT_SECRET";
@@ -31,7 +32,7 @@ let mut client = Client::builder()
     .client_secret(client_secret)
     .refresh_token(refresh_token)
     .access_token(None) // optional
-    .oauth_domain(Some(String::from("https://accounts.zoho.com"))) // optional
+    .data_center(DataCenter::US) // optional
     .api_domain(Some(String::from("https://zohoapis.com"))) // optional
     .sandbox(false) // optional
     .timeout(30u64) // optional

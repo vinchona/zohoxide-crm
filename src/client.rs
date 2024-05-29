@@ -5,11 +5,12 @@ use crate::token_record::TokenRecord;
 use std::collections::HashMap;
 use std::time::Duration;
 use typed_builder::TypedBuilder;
+use crate::DataCenter;
 
 /// Default network timeout for API requests.
 const DEFAULT_TIMEOUT: u64 = 30;
-const DEFAULT_OAUTH_DOMAIN: &str = "https://accounts.zoho.com";
 const DEFAULT_API_DOMAIN: &str = "https://www.zohoapis.com";
+const DEFAULT_DATA_CENTER: DataCenter = DataCenter::US;
 
 /// Handles making requests to v2 of the Zoho CRM API.
 ///
@@ -54,7 +55,7 @@ pub struct Client {
     refresh_token: String,
     #[builder(default)]
     access_token: Option<String>,
-    #[builder(default = Some(String::from(DEFAULT_OAUTH_DOMAIN)))]
+    #[builder(default)]
     oauth_domain: Option<String>,
     #[builder(default = Some(String::from(DEFAULT_API_DOMAIN)))]
     api_domain: Option<String>,
@@ -62,6 +63,8 @@ pub struct Client {
     sandbox: bool,
     #[builder(default = DEFAULT_TIMEOUT)]
     timeout: u64,
+    #[builder(default = Some(DEFAULT_DATA_CENTER))]
+    data_center: Option<DataCenter>,
 }
 
 impl Client {
@@ -87,6 +90,11 @@ impl Client {
         } else {
             self.api_domain.clone()
         }
+    }
+
+    // Get the data center
+    pub fn data_center(&self) -> Option<DataCenter> {
+        self.data_center.clone()
     }
 
     /// Get an abbreviated version of the access token. This is a (slightly) safer version
@@ -135,11 +143,17 @@ impl Client {
     pub fn get_new_token(&mut self) -> Result<TokenRecord, ClientError> {
         let url = format!(
             "{}/oauth/v2/token?grant_type=refresh_token&client_id={}&client_secret={}&refresh_token={}",
-            self.oauth_domain.as_deref().unwrap(),
+            if self.oauth_domain.is_none() {
+                self.data_center().unwrap().get_iam_url()
+            } else {
+                self.oauth_domain.clone().unwrap()
+            },
             self.client_id,
             self.client_secret,
             self.refresh_token
         );
+
+        println!("url: {}", url);
 
         let client = reqwest::blocking::Client::new();
         let response = client.post(url.as_str()).send()?;
@@ -571,6 +585,7 @@ mod tests {
         access_token: Option<String>,
         oauth_domain: Option<String>,
         api_domain: Option<String>,
+        data_center: Option<DataCenter>,
     ) -> Client {
         let id = "id";
         let secret = "secret";
@@ -578,8 +593,9 @@ mod tests {
 
         Client::builder()
             .access_token(access_token)
-            .oauth_domain(oauth_domain)
             .api_domain(api_domain)
+            .oauth_domain(oauth_domain)
+            .data_center(data_center)
             .client_id(id)
             .client_secret(secret)
             .refresh_token(refresh_token)
@@ -589,7 +605,7 @@ mod tests {
     #[test]
     /// Tests that using no preset access token works.
     fn no_access_token() {
-        let client = get_client(None, None, Some(String::from("api_domain")));
+        let client = get_client(None, None, Some(String::from("api_domain")), None);
 
         assert_eq!(client.access_token(), None);
     }
@@ -597,7 +613,7 @@ mod tests {
     #[test]
     /// Tests that using no preset API domain works.
     fn no_domain() {
-        let client = get_client(Some(String::from("access_token")), None, None);
+        let client = get_client(Some(String::from("access_token")), None, None, None);
 
         assert_eq!(client.api_domain(), None);
     }
@@ -606,7 +622,7 @@ mod tests {
     /// Tests that using a preset access token works.
     fn preset_access_token() {
         let access_token = String::from("access_token");
-        let client = get_client(Some(access_token.clone()), None, None);
+        let client = get_client(Some(access_token.clone()), None, None, None);
 
         assert_eq!(client.access_token(), Some(access_token));
     }
@@ -615,7 +631,7 @@ mod tests {
     /// Tests that using a preset API domain works.
     fn preset_api_domain() {
         let domain = String::from("api_domain");
-        let client = get_client(None, None, Some(domain.clone()));
+        let client = get_client(None, None, Some(domain.clone()), None);
 
         assert_eq!(client.api_domain(), Some(domain));
     }
@@ -623,7 +639,7 @@ mod tests {
     #[test]
     /// Tests that the `valid_abbreviated_token()` method works without an access token.
     fn empty_abbreviated_token() {
-        let client = get_client(None, None, None);
+        let client = get_client(None, None, None, None);
 
         assert_eq!(client.abbreviated_access_token(), None);
     }
@@ -632,7 +648,7 @@ mod tests {
     /// Tests that the `valid_abbreviated_token()` method works with an access token.
     fn valid_abbreviated_token() {
         let access_token = String::from("12345678901234567890");
-        let client = get_client(Some(access_token), None, None);
+        let client = get_client(Some(access_token), None, None, None);
 
         assert_ne!(client.access_token().unwrap().len(), 15);
         assert_eq!(client.abbreviated_access_token().unwrap().len(), 15);
@@ -641,7 +657,7 @@ mod tests {
     #[test]
     fn api_domain() {
         let api_domain = "https://test.com";
-        let client = get_client(None, None, Some(String::from(api_domain)));
+        let client = get_client(None, None, Some(String::from(api_domain)), None);
 
         assert_eq!(api_domain, client.api_domain().unwrap());
     }
@@ -667,6 +683,15 @@ mod tests {
     }
 
     #[test]
+    fn data_center() {
+        let data_center = DataCenter::EU;
+        let client = get_client(None, None, None, Some(data_center));
+
+        assert_eq!(data_center, client.data_center().unwrap());
+    }
+
+
+    #[test]
     /// Tests that a valid token is set after calling the `Client` `get_new_token()` method.
     fn get_new_token_success() {
         let access_token = "9999.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
@@ -681,7 +706,7 @@ mod tests {
             .with_body(&body)
             .create();
 
-        let mut client = get_client(None, Some(server.url()), None);
+        let mut client = get_client(None, Some(server.url()), None, None);
 
         match client.get_new_token() {
             Ok(e) => println!("Good: {:#?}", e),
@@ -710,7 +735,7 @@ mod tests {
             .with_body(&body)
             .create();
 
-        let mut client = get_client(None, Some(server.url()), None);
+        let mut client = get_client(None, Some(server.url()), None, None);
 
         client.get_new_token().unwrap();
 
@@ -732,7 +757,7 @@ mod tests {
             .with_header("Content-Length", &body.to_string().len().to_string())
             .with_body(&body)
             .create();
-        let mut client = get_client(None, Some(server.url()), None);
+        let mut client = get_client(None, Some(server.url()), None, None);
 
         match client.get_new_token() {
             Ok(_) => panic!("Error was not thrown"),
@@ -763,7 +788,7 @@ mod tests {
             .with_body(&body)
             .create();
 
-        let mut client = get_client(None, Some(server.url()), None);
+        let mut client = get_client(None, Some(server.url()), None, None);
 
         let token = client.get_new_token().unwrap();
 
@@ -790,7 +815,7 @@ mod tests {
             .with_body(&body)
             .create();
 
-        let mut client = get_client(None, Some(server.url()), None);
+        let mut client = get_client(None, Some(server.url()), None, None);
 
         let token = client.get_new_token().unwrap();
 
@@ -817,7 +842,7 @@ mod tests {
             .with_body(&body)
             .create();
 
-        let mut client = get_client(Some(String::from(access_token)), None, Some(api_domain));
+        let mut client = get_client(Some(String::from(access_token)), None, Some(api_domain), None);
 
         let response = client.get::<ResponseRecord>("Accounts", record_id).unwrap();
 
@@ -844,7 +869,7 @@ mod tests {
             .with_body(&body)
             .create();
 
-        let mut client = get_client(Some(String::from(access_token)), None, Some(api_domain));
+        let mut client = get_client(Some(String::from(access_token)), None, Some(api_domain), None);
 
         match client.get::<ResponseRecord>("INVALID_MODULE", "00000") {
             Ok(_) => panic!("Response did not return an error"),
@@ -873,7 +898,7 @@ mod tests {
             .with_body(&body)
             .create();
 
-        let mut client = get_client(Some(String::from(access_token)), None, Some(api_domain));
+        let mut client = get_client(Some(String::from(access_token)), None, Some(api_domain), None);
 
         match client.get::<ResponseRecord>("INVALID_MODULE", "00000") {
             Ok(_) => panic!("Response did not return an error"),
@@ -925,7 +950,7 @@ mod tests {
             .with_body(&body)
             .create();
 
-        let mut client = get_client(Some(String::from(access_token)), None, Some(api_domain));
+        let mut client = get_client(Some(String::from(access_token)), None, Some(api_domain), None);
 
         let mut record: HashMap<&str, &str> = HashMap::new();
         record.insert("name", "New Record Name");
@@ -968,7 +993,7 @@ mod tests {
             .with_body(&body)
             .create();
 
-        let mut client = get_client(Some(String::from(access_token)), None, Some(api_domain));
+        let mut client = get_client(Some(String::from(access_token)), None, Some(api_domain), None);
 
         let mut record: HashMap<&str, &str> = HashMap::new();
         record.insert("name", "New Record Name");
@@ -999,7 +1024,7 @@ mod tests {
             .with_header("Content-Length", &body.to_string().len().to_string())
             .with_body(&body)
             .create();
-        let mut client = get_client(Some(String::from(access_token)), None, Some(api_domain));
+        let mut client = get_client(Some(String::from(access_token)), None, Some(api_domain), None);
 
         let mut record: HashMap<&str, &str> = HashMap::new();
         record.insert("name", "New Record Name");
@@ -1054,7 +1079,7 @@ mod tests {
             .with_body(&body)
             .create();
 
-        let mut client = get_client(Some(String::from(access_token)), None, Some(api_domain));
+        let mut client = get_client(Some(String::from(access_token)), None, Some(api_domain), None);
 
         let mut record: HashMap<&str, &str> = HashMap::new();
         record.insert("name", "New Record Name");
@@ -1097,7 +1122,7 @@ mod tests {
             .with_body(&body)
             .create();
 
-        let mut client = get_client(Some(String::from(access_token)), None, Some(api_domain));
+        let mut client = get_client(Some(String::from(access_token)), None, Some(api_domain), None);
 
         let mut record: HashMap<&str, &str> = HashMap::new();
         record.insert("name", "New Record Name");
@@ -1129,7 +1154,7 @@ mod tests {
             .with_body(&body)
             .create();
 
-        let mut client = get_client(Some(String::from(access_token)), None, Some(api_domain));
+        let mut client = get_client(Some(String::from(access_token)), None, Some(api_domain), None);
 
         let mut record: HashMap<&str, &str> = HashMap::new();
         record.insert("name", "New Record Name");
@@ -1177,8 +1202,9 @@ mod tests {
                     client_secret: client_secret.into(),
                     refresh_token: refresh_token.into(),
                     access_token: None,
-                    oauth_domain: Some(String::from(DEFAULT_OAUTH_DOMAIN)),
+                    oauth_domain: None,
                     api_domain: Some(String::from(DEFAULT_API_DOMAIN)),
+                    data_center: Some(DEFAULT_DATA_CENTER),
                     sandbox: false,
                     timeout: DEFAULT_TIMEOUT,
                 }
