@@ -2,10 +2,10 @@ use crate::client_error::ClientError;
 use crate::response;
 use crate::token_record::TokenRecord;
 
+use crate::DataCenter;
 use std::collections::HashMap;
 use std::time::Duration;
 use typed_builder::TypedBuilder;
-use crate::DataCenter;
 
 /// Default network timeout for API requests.
 const DEFAULT_TIMEOUT: u64 = 30;
@@ -94,7 +94,7 @@ impl Client {
 
     // Get the data center
     pub fn data_center(&self) -> Option<DataCenter> {
-        self.data_center.clone()
+        self.data_center
     }
 
     /// Get an abbreviated version of the access token. This is a (slightly) safer version
@@ -690,7 +690,6 @@ mod tests {
         assert_eq!(data_center, client.data_center().unwrap());
     }
 
-
     #[test]
     /// Tests that a valid token is set after calling the `Client` `get_new_token()` method.
     fn get_new_token_success() {
@@ -842,7 +841,12 @@ mod tests {
             .with_body(&body)
             .create();
 
-        let mut client = get_client(Some(String::from(access_token)), None, Some(api_domain), None);
+        let mut client = get_client(
+            Some(String::from(access_token)),
+            None,
+            Some(api_domain),
+            None,
+        );
 
         let response = client.get::<ResponseRecord>("Accounts", record_id).unwrap();
 
@@ -869,7 +873,12 @@ mod tests {
             .with_body(&body)
             .create();
 
-        let mut client = get_client(Some(String::from(access_token)), None, Some(api_domain), None);
+        let mut client = get_client(
+            Some(String::from(access_token)),
+            None,
+            Some(api_domain),
+            None,
+        );
 
         match client.get::<ResponseRecord>("INVALID_MODULE", "00000") {
             Ok(_) => panic!("Response did not return an error"),
@@ -898,7 +907,12 @@ mod tests {
             .with_body(&body)
             .create();
 
-        let mut client = get_client(Some(String::from(access_token)), None, Some(api_domain), None);
+        let mut client = get_client(
+            Some(String::from(access_token)),
+            None,
+            Some(api_domain),
+            None,
+        );
 
         match client.get::<ResponseRecord>("INVALID_MODULE", "00000") {
             Ok(_) => panic!("Response did not return an error"),
@@ -950,7 +964,12 @@ mod tests {
             .with_body(&body)
             .create();
 
-        let mut client = get_client(Some(String::from(access_token)), None, Some(api_domain), None);
+        let mut client = get_client(
+            Some(String::from(access_token)),
+            None,
+            Some(api_domain),
+            None,
+        );
 
         let mut record: HashMap<&str, &str> = HashMap::new();
         record.insert("name", "New Record Name");
@@ -993,7 +1012,12 @@ mod tests {
             .with_body(&body)
             .create();
 
-        let mut client = get_client(Some(String::from(access_token)), None, Some(api_domain), None);
+        let mut client = get_client(
+            Some(String::from(access_token)),
+            None,
+            Some(api_domain),
+            None,
+        );
 
         let mut record: HashMap<&str, &str> = HashMap::new();
         record.insert("name", "New Record Name");
@@ -1024,7 +1048,12 @@ mod tests {
             .with_header("Content-Length", &body.to_string().len().to_string())
             .with_body(&body)
             .create();
-        let mut client = get_client(Some(String::from(access_token)), None, Some(api_domain), None);
+        let mut client = get_client(
+            Some(String::from(access_token)),
+            None,
+            Some(api_domain),
+            None,
+        );
 
         let mut record: HashMap<&str, &str> = HashMap::new();
         record.insert("name", "New Record Name");
@@ -1079,7 +1108,12 @@ mod tests {
             .with_body(&body)
             .create();
 
-        let mut client = get_client(Some(String::from(access_token)), None, Some(api_domain), None);
+        let mut client = get_client(
+            Some(String::from(access_token)),
+            None,
+            Some(api_domain),
+            None,
+        );
 
         let mut record: HashMap<&str, &str> = HashMap::new();
         record.insert("name", "New Record Name");
@@ -1122,7 +1156,12 @@ mod tests {
             .with_body(&body)
             .create();
 
-        let mut client = get_client(Some(String::from(access_token)), None, Some(api_domain), None);
+        let mut client = get_client(
+            Some(String::from(access_token)),
+            None,
+            Some(api_domain),
+            None,
+        );
 
         let mut record: HashMap<&str, &str> = HashMap::new();
         record.insert("name", "New Record Name");
@@ -1154,7 +1193,12 @@ mod tests {
             .with_body(&body)
             .create();
 
-        let mut client = get_client(Some(String::from(access_token)), None, Some(api_domain), None);
+        let mut client = get_client(
+            Some(String::from(access_token)),
+            None,
+            Some(api_domain),
+            None,
+        );
 
         let mut record: HashMap<&str, &str> = HashMap::new();
         record.insert("name", "New Record Name");
