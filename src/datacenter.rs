@@ -6,7 +6,7 @@ pub enum DataCenter {
     IN,
     CN,
     JP,
-    CA
+    CA,
 }
 
 impl DataCenter {
