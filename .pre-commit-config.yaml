@@ -1,6 +1,6 @@
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.4.0
+    rev: v5.0.0
     hooks:
       - id: check-executables-have-shebangs
         stages: [commit]
@@ -44,7 +44,7 @@ repos:
       - id: cargo-check
         stages: [commit]
   - repo: https://github.com/crate-ci/typos
-    rev: v1.16.8
+    rev: v1.26.0
     hooks:
       - id: typos
         stages: [commit]
