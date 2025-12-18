@@ -331,8 +331,8 @@ impl Client {
 
         let mut url = format!("{}/crm/v2/{}", api_domain, module);
 
-        if params.is_some() {
-            url = url + &format!("?{}", params.unwrap());
+        if let Some(param) = params {
+            url = url + &format!("?{param}");
         }
 
         let response = client
