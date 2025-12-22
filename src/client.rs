@@ -153,8 +153,6 @@ impl Client {
             self.refresh_token
         );
 
-        println!("url: {}", url);
-
         let client = reqwest::blocking::Client::new();
         let response = client.post(url.as_str()).send()?;
         let raw_response = response.text()?;
